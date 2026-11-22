@@ -75,29 +75,9 @@ const OfferSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
-        totalCap: {
-            type: Number,
-            default: 1000
-        },
-        dailyCap: {
-            type: Number,
-            default: 100
-        },
-        completionsPerUser: {
-            type: Number,
-            default: 1
-        },
         currentInstalls: {
             type: Number,
             default: 0
-        },
-        startDate: {
-            type: Date,
-            default: null
-        },
-        endDate: {
-            type: Date,
-            default: null
         },
         postbackSecretKey: {
             type: String,
@@ -105,11 +85,6 @@ const OfferSchema = new mongoose.Schema(
             select: false
         },
         postbackUrl: {
-            type: String,
-            default: null,
-            select: false
-        },
-        advertiserPostbackUrl: {
             type: String,
             default: null,
             select: false

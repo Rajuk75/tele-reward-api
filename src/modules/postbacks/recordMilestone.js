@@ -4,6 +4,7 @@ import OfferReferral from '../referrals/offerReferral.model.js';
 import Offer from '../offers/offer.model.js';
 import Revenue from '../conversions/revenue.model.js';
 import PostbackLog from './postbackLog.model.js';
+import Payout from '../payouts/payout.model.js';
 import { matchMilestone } from '../tracking/milestones.js';
 
 export default function recordMilestone(id, query, ip, scrub) {
@@ -41,23 +42,78 @@ export default function recordMilestone(id, query, ip, scrub) {
             conversionIp: ip, approvalStatus: scrubbed ? 'scrubbed' : 'auto_approved'
         });
         await click.save({ session });
+
+        // 1. Record Revenue & Margin for Admin
         await Revenue.create([{
             trackingId: id, offerId: click.offerId, campaignId: click.campaignId, userId: click.userId,
             eventName: row.eventKey, advertiserAmount: row.advertiserPayoutPaise / 100,
             userReward: (user + referrer) / 100, margin: (row.advertiserPayoutPaise - user - referrer) / 100,
             status: 'settled', settledAt: now
         }], { session });
-        if (click.referralId) {
-            await OfferReferral.updateOne({ _id: click.referralId }, { $inc: {
-                totalEarnings: referrer / 100, totalConversions: Number(click.status === 'completed')
-            } }, { session });
+
+        // 2. Generate Payout Records (User & Referrer)
+        if (!scrubbed) {
+            const payoutsToCreate = [];
+
+            // 2a. Payout for User completing the task
+            if (user > 0) {
+                payoutsToCreate.push({
+                    type: 'offer_completion',
+                    trackingId: id,
+                    clickId: click.clickId,
+                    offerId: click.offerId,
+                    userId: click.userId || null,
+                    payoutAccount: click.payoutAccount,
+                    payoutType: click.payoutType || 'UPI',
+                    payoutHolderName: click.payoutHolderName || null,
+                    payoutIfsc: click.payoutIfsc || null,
+                    amount: user / 100,
+                    status: 'unpaid',
+                    notes: `Reward for ${row.eventName} event`
+                });
+            }
+
+            // 2b. Payout for Referrer sharing the deal
+            if (click.referralId && referrer > 0) {
+                const referralDoc = await OfferReferral.findById(click.referralId).session(session);
+                if (referralDoc) {
+                    referralDoc.totalEarnings += (referrer / 100);
+                    if (click.status === 'completed') {
+                        referralDoc.totalConversions += 1;
+                    }
+                    await referralDoc.save({ session });
+
+                    payoutsToCreate.push({
+                        type: 'offer_referral',
+                        trackingId: id,
+                        clickId: click.clickId,
+                        offerId: click.offerId,
+                        payoutAccount: referralDoc.referrerAccount,
+                        payoutType: referralDoc.referrerType || 'UPI',
+                        payoutHolderName: referralDoc.referrerHolderName || null,
+                        payoutIfsc: referralDoc.referrerIfsc || null,
+                        amount: referrer / 100,
+                        status: 'unpaid',
+                        notes: `Referral commission for ${row.eventName} (${referralDoc.referralCode})`
+                    });
+                }
+            }
+
+            if (payoutsToCreate.length > 0) {
+                await Payout.create(payoutsToCreate, { session });
+            }
         }
+
+        // 3. Increment Offer Install Stats
         if (row.eventKey === 'install' && !scrubbed) {
             await Offer.updateOne({ _id: click.offerId }, { $inc: { currentInstalls: 1 } }, { session });
         }
+
+        // 4. Create Postback Log
         await PostbackLog.create([{ clickId: click.clickId, offerId: click.offerId, ipAddress: ip,
             status: 'success', notes: row.status, fullQuery: { event: row.eventKey, txid: row.advertiserTxId }
         }], { session });
+
         return { event: row.eventKey, status: click.status, amountAwarded: user / 100,
             earnedUserAmountPaise: click.earnedUserAmountPaise, scrubbed };
     });

@@ -3,24 +3,28 @@ export function normalizeKey(value) {
 }
 
 export function snapshotMilestones(offer, percent = 0) {
-    const seen = new Set();
     const rows = [];
-    for (const item of offer.events) {
+    for (const item of (offer.events || [])) {
         const event = item.campaignEventId;
         if (!event || event.isDeleted || event.status === 'inactive') continue;
-        if (String(event.campaignId) !== String(offer.campaignId._id)) throw new Error('Event belongs to another campaign');
-        const eventKey = normalizeKey(event.eventKey || event.name);
-        if (!eventKey || seen.has(eventKey)) throw new Error('Offer requires distinct event keys');
-        seen.add(eventKey);
-        const baseUserPayoutPaise = Math.round(item.userPayout * 100);
+
+        const baseUserPayoutPaise = Math.round((item.userPayout || 0) * 100);
         const referrerSharePaise = Math.round(baseUserPayoutPaise * percent / 100);
+
         rows.push({
-            campaignEventId: event._id, offerEventId: item._id, eventKey, eventName: event.name,
-            order: event.order, advertiserPayoutPaise: Math.round(event.advertiserPayout * 100),
-            baseUserPayoutPaise, referrerSharePaise, userSharePaise: baseUserPayoutPaise - referrerSharePaise,
+            campaignEventId: event._id,
+            offerEventId: item._id,
+            eventKey: normalizeKey(event.eventKey || event.name),
+            eventName: event.name,
+            order: event.order || 1,
+            advertiserPayoutPaise: Math.round((event.advertiserPayout || 0) * 100),
+            baseUserPayoutPaise,
+            referrerSharePaise,
+            userSharePaise: baseUserPayoutPaise - referrerSharePaise,
             status: 'pending'
         });
     }
+
     if (!rows.length) throw new Error('Offer has no active milestones');
     return rows.sort((a, b) => a.order - b.order);
 }

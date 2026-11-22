@@ -43,9 +43,14 @@ class OfferRepository {
                 .skip(skip)
                 .limit(limit)
                 .lean();
-            return offers.map(offer => ({
-                ...offer, totalPayout: offer.events.reduce((sum, event) => sum + event.userPayout, 0)
-            }));
+            return offers.map(offer => {
+                const events = Array.isArray(offer.events) ? offer.events : [];
+                return {
+                    ...offer,
+                    totalPayout: events.reduce((sum, event) => sum + (event.userPayout || 0), 0),
+                    totalCap: events.reduce((sum, event) => sum + (event.campaignEventId?.cap || 0), 0)
+                };
+            });
         } catch (error) {
             logger.error(`offer.repo.js << findOffers() << ${error.message}`);
             throw error;
