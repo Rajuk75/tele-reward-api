@@ -9,7 +9,8 @@ router.get('/v1/admin/offers', checkPermission('GET_ALL_OFFERS'), offerControlle
 router.delete('/v1/admin/offers/:offerId', checkPermission('DELETE_OFFER'), offerController.deleteOffer);
 router.patch('/v1/admin/offers/:offerId/status', checkPermission('UPDATE_OFFER'), offerController.updateOfferStatus);
 
-// ── Public Offer APIs (No Auth Required) ──
+// ── Public Offer & Task APIs (No Auth Required) ──
+router.get('/v1/public/task', offerController.getPublicOffer);
 router.get('/v1/public/offers/:offerId', offerController.getPublicOffer);
 
 export default router;

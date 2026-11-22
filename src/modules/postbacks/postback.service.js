@@ -121,7 +121,7 @@ class PostbackService {
         const advertiserTxId = fullQuery.txid || fullQuery.transaction_id || null;
         const isScrubbed = this._isScrubbed(campaign, clickId);
         const eventName = fullQuery.event?.trim() || 'Install';
-        const userReward = isScrubbed ? 0 : (tracking.userRewardINR || offer.firstEventPayout || 0);
+        const userReward = isScrubbed ? 0 : (tracking.userRewardINR ?? offer.events?.[0]?.userPayout ?? 0);
         const advertiserAmount = tracking.advertiserAmount || offer.events?.[0]?.campaignEventId?.advertiserPayout || 0;
         const now = new Date();
 

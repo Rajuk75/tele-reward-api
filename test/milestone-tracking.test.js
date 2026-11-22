@@ -7,6 +7,7 @@ import offerService from '../src/modules/offers/offer.service.js';
 import clickService from '../src/modules/clicks/click.service.js';
 import postbacks from '../src/modules/postbacks/postback.service.js';
 import Offer from '../src/modules/offers/offer.model.js';
+import OfferEvent from '../src/modules/offers/offerEvent.model.js';
 import OfferReferral from '../src/modules/referrals/offerReferral.model.js';
 import Tracking from '../src/modules/tracking/tracking.model.js';
 import Revenue from '../src/modules/conversions/revenue.model.js';
@@ -22,14 +23,28 @@ test('direct and referral clicks settle milestones once, including concurrent ca
     });
     await Promise.all(Object.values(mongoose.models).map(model => model.init()));
     const campaign = await campaignService.createCampaign({
-        name: 'Tracking test', imageUrl: 'test.png', campaignUrl: 'https://example.test/?cid={clickId}',
+        campaign: { name: 'Tracking test', imageUrl: 'test.png', campaignUrl: 'https://example.test/?cid={clickId}' },
         events: ['install', 'register', 'deposit'].map(key => ({
-            name: 'Display ' + key, eventKey: key, objective: 'CPA', cap: 50, advertiserPayout: 50
+            name: 'Display ' + key, eventKey: key, cap: 50, advertiserPayout: 50
         }))
     });
-    const offer = await offerService.createOffer({ campaignId: campaign._id,
+    const createWithEvents = events => offerService.createOffer({ offer: { campaignId: campaign._id }, events });
+    const selection = { campaignEventId: campaign.events[0]._id, userPayout: 5 };
+    await assert.rejects(createWithEvents([selection, selection]), /only once/);
+    await assert.rejects(createWithEvents([{ ...selection, campaignEventId: new mongoose.Types.ObjectId() }]), /from this campaign/);
+    const offer = await offerService.createOffer({ offer: { campaignId: campaign._id },
         events: campaign.events.map((e, i) => ({ campaignEventId: e._id, userPayout: [10, 20.01, 70][i] }))
     });
+    const stored = await Offer.collection.findOne({ _id: offer._id });
+    assert.ok(stored.campaignId.equals(campaign._id));
+    assert.equal(stored.events, undefined);
+    assert.equal(stored.firstEventPayout, undefined);
+    assert.equal(stored.totalPayout, undefined);
+    const listing = await offerService.getAllOffers();
+    assert.equal(listing.offers[0].totalPayout, 100.01);
+    const children = await OfferEvent.find({ offerId: stored._id });
+    assert.deepEqual(children.map(row => String(row.campaignEventId)).sort(),
+        campaign.events.map(event => String(event._id)).sort());
     const { postbackSecretKey } = await Offer.findById(offer._id).select('+postbackSecretKey');
     const referral = await OfferReferral.create({ offerId: offer._id, referralCode: 'team', referrerAccount: 'owner@bank' });
     await OfferReferral.create({ offerId: new mongoose.Types.ObjectId(), referralCode: 'other', referrerAccount: 'another@bank' });
@@ -75,10 +90,10 @@ test('direct and referral clicks settle milestones once, including concurrent ca
     assert.equal(status.status, 'Partially Completed');
 
     const singleCampaign = await campaignService.createCampaign({
-        name: 'Single', imageUrl: 'a.png', campaignUrl: 'https://example.test',
-        events: [{ name: 'Install', objective: 'CPI', cap: 5, payout: 5 }]
+        campaign: { name: 'Single', imageUrl: 'a.png', campaignUrl: 'https://example.test' },
+        events: [{ name: 'Install', cap: 5, payout: 5 }]
     });
-    const single = await offerService.createOffer({ campaignId: singleCampaign._id,
+    const single = await offerService.createOffer({ offer: { campaignId: singleCampaign._id },
         events: [{ campaignEventId: singleCampaign.events[0]._id, userPayout: 2 }] });
     const singleClick = await clickService.generateClick(single._id, { payoutAccount: 'single' });
     const singleOffer = await Offer.findById(single._id).select('+postbackSecretKey');

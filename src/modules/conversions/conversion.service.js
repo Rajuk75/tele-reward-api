@@ -103,7 +103,7 @@ class ConversionService {
 
             const [conversions, total] = await Promise.all([
                 Tracking.find(filter)
-                    .populate('offerId', 'offerName totalPayout firstEventPayout')
+                    .populate('offerId', 'offerName')
                     .populate('campaignId', 'name category')
                     .populate('userId', 'name email phone')
                     .sort({ createdAt: -1 })

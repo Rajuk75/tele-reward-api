@@ -46,11 +46,15 @@ class OfferController {
 
     getPublicOffer = async (req, res) => {
         try {
-            const { offerId } = req.params;
-            if (!mongoose.Types.ObjectId.isValid(offerId)) {
+            const offerId = req.params.offerId || req.query.offerId;
+            const referralCode = req.query.ref;
+            if (!offerId && !referralCode) {
+                return setBadRequest(res, {message:'No task or referral specified'});
+            }
+            if (offerId && !mongoose.Types.ObjectId.isValid(offerId)) {
                 return setBadRequest(res, 'Invalid Offer ID format');
             }
-            const data = await offerService.getPublicOffer(offerId, req.query.ref);
+            const data = await offerService.getPublicOffer({ offerId, referralCode });
             return setSuccess(res, data);
         } catch (error) {
             logger.error(`offer.controller.js << getPublicOffer << ${error.message}`);

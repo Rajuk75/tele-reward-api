@@ -1,27 +1,6 @@
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Offer Event Subdocument
- * Represents an individual event milestone under this offer,
- * with its own unique _id and linked to a Campaign Event.
- */
-const OfferEventSubSchema = new mongoose.Schema(
-    {
-        campaignEventId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'CampaignEvent',
-            required: true
-        },
-        userPayout: {
-            type: Number,
-            required: true,
-            min: 0
-        }
-    },
-    { _id: true }
-);
-
 const OfferSchema = new mongoose.Schema(
     {
         campaignId: {
@@ -47,18 +26,6 @@ const OfferSchema = new mongoose.Schema(
             type: String,
             unique: true,
             default: () => uuidv4().slice(0, 6).toUpperCase()
-        },
-        events: [OfferEventSubSchema], // Legacy embedded milestones
-        usesOfferEvents: Boolean,
-        firstEventPayout: {
-            type: Number,
-            default: 0,
-            index: true
-        },
-        totalPayout: {
-            type: Number,
-            default: 0,
-            index: true
         },
         steps: {
             type: String
@@ -168,7 +135,8 @@ const OfferSchema = new mongoose.Schema(
 );
 
 // ── INDEXES ──────────────────────────────────────────────────────────────────
-OfferSchema.virtual('selectedEvents', { ref: 'OfferEvent', localField: '_id', foreignField: 'offerId' });
+export const populateOfferEvents = { path: 'events', populate: { path: 'campaignEventId' } };
+OfferSchema.virtual('events', { ref: 'OfferEvent', localField: '_id', foreignField: 'offerId' });
 OfferSchema.index({ campaignId: 1 }, { unique: true });
 OfferSchema.index({ isDeleted: 1, status: 1, priority: -1, createdAt: -1 });
 OfferSchema.index({ isDeleted: 1, category: 1, priority: -1, createdAt: -1 });

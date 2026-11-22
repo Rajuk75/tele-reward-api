@@ -7,7 +7,7 @@ export function snapshotMilestones(offer, percent = 0) {
     const rows = [];
     for (const item of offer.events) {
         const event = item.campaignEventId;
-        if (!event || event.isDeleted || event.status === 'inactive' || item.status === 'inactive') continue;
+        if (!event || event.isDeleted || event.status === 'inactive') continue;
         if (String(event.campaignId) !== String(offer.campaignId._id)) throw new Error('Event belongs to another campaign');
         const eventKey = normalizeKey(event.eventKey || event.name);
         if (!eventKey || seen.has(eventKey)) throw new Error('Offer requires distinct event keys');

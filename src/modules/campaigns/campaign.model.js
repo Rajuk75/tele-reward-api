@@ -10,8 +10,6 @@ const CampaignSchema = new mongoose.Schema({
     category:               { type: String, enum: ['business', 'education', 'entertainment', 'fantasy', 'finance', 'food', 'gaming', 'loan', 'news', 'photography', 'productivity', 'shopping', 'travel'], default: 'business' },
     model:                  { type: String, enum: ['CPA', 'CPD', 'CPG', 'CPI', 'CPL', 'CPR', 'CPRT', 'CPS', 'CPT', 'CPV'], default: 'CPI' },
     status:                 { type: String, enum: ['active', 'inactive'], default: 'active' },
-    events:                 [{ type: mongoose.Schema.Types.ObjectId, ref: 'CampaignEvent' }],
-    totalAdvertiserPayout:  { type: Number, default: 0, index: true },
     conversionApproval:     { type: String, enum: ['automatic', 'manual'], default: 'automatic' },
     needApproval:           { type: Boolean, default: false },
     sameClickIpBlock:       { type: Boolean, default: true },
@@ -23,7 +21,19 @@ const CampaignSchema = new mongoose.Schema({
     shaving:                { enabled: { type: Boolean, default: false }, ratio: { type: Number, default: 0, min: 0, max: 100 } },
     uniqueId:               { type: String, unique: true, default: () => uuidv4() },
     isDeleted:              { type: Boolean, default: false }
-}, { timestamps: true });
+}, { timestamps: true, toJSON: { virtuals: true } });
+
+CampaignSchema.virtual('events', {
+    ref: 'CampaignEvent',
+    localField: '_id',
+    foreignField: 'campaignId',
+    match: { isDeleted: false, offerId: null },
+    options: { sort: { order: 1, _id: 1 } }
+});
+
+CampaignSchema.virtual('totalAdvertiserPayout').get(function () {
+    return this.events?.reduce((sum, event) => sum + event.advertiserPayout, 0);
+});
 
 // ── INDEXES ──────────────────────────────────────────────────────────────────
 CampaignSchema.index({ status: 1, isDeleted: 1 });

@@ -1,4 +1,5 @@
 import logger from './logger.js';
+import config from './config.js';
 /**
  * urlBuilder.js — Campaign URL Token Replacement
  * ─────────────────────────────────────────────────────────────────────────────
@@ -121,3 +122,28 @@ export function extractClickParams(source = {}) {
         p6:       source.p6       || null,
     };
 }
+
+/**
+ * buildPostbackUrl
+ * Generates the inbound S2S postback URL template for an offer.
+ *
+ * @param {string} secretKey - Unique postback secret key for the offer
+ * @returns {string} - Full postback URL template
+ */
+export function buildPostbackUrl(secretKey) {
+    return `${config.BASE_URL}/postback?cid={clickId}&secret=${secretKey}&event={event}`;
+}
+
+/**
+ * buildReferralUrl
+ * Generates the public task referral share URL without exposing the internal offerId.
+ *
+ * @param {string} referralCode - Generated referral code
+ * @returns {string} - Full referral share URL (/task?ref=xyz)
+ */
+export function buildReferralUrl(referralCode) {
+    const code = typeof referralCode === 'string' ? referralCode : arguments[1];
+    return `${config.BASE_URL}/task?ref=${code}`;
+}
+
+

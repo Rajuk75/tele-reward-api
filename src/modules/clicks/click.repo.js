@@ -1,14 +1,13 @@
-import { populateSelectedEvents, withSelectedEvents } from '../offers/offer.service.js';
-import Offer from '../offers/offer.model.js';
+import Offer, { populateOfferEvents } from '../offers/offer.model.js';
 import Tracking from '../tracking/tracking.model.js';
 import logger from '../../core/logger.js';
 
 class ClickRepository {
     async findOfferForClick(offerId) {
         try {
-            return withSelectedEvents(await Offer.findById(offerId)
+            return await Offer.findById(offerId)
                 .populate('campaignId')
-                .populate('events.campaignEventId').populate(populateSelectedEvents).lean());
+                .populate(populateOfferEvents).lean();
         } catch (error) {
             logger.error(`click.repo.js << findOfferForClick() << ${error.message}`);
             throw error;

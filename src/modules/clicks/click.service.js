@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
 import resolveReferral from '../referrals/resolveReferral.js';
 import { snapshotMilestones } from '../tracking/milestones.js';
-import OfferEvent from '../offers/offerEvent.model.js';
 import crypto from 'crypto';
 import clickRepo from './click.repo.js';
 import { buildTrackingUrl } from '../../core/urlBuilder.js';
@@ -37,8 +36,6 @@ class ClickService {
                 throw new Error(`This payout account (${payoutAccount}) has already completed this offer!`);
             }
 
-            const userRewardINR = offer.firstEventPayout ?? offer.totalPayout ?? 0;
-            const advertiserAmount = offer.events?.[0]?.campaignEventId?.advertiserPayout || 0;
             const defaultUrl = offer.campaignUrl || campaign?.campaignUrl || '';
             const destinationUrl = this._resolveDestinationUrl(offer, payoutAccount, defaultUrl);
 
@@ -56,38 +53,24 @@ class ClickService {
                 status: 'clicked',
                 ipAddress: reqMeta.ip || null,
                 deviceDetails: { brand: 'Web/Telegram', userAgent: reqMeta.userAgent || null },
-                userRewardINR,
-                advertiserAmount,
                 clickedAt: now,
                 urlParams: { source: data.source || 'telegram', p1: payoutAccount }
             };
-            if (offer.usesOfferEvents || offer.events.length || data.referralCode !== undefined) {
-                await mongoose.connection.transaction(async session => {
-                    const referral = await resolveReferral(offer._id, data.referralCode, session);
-                    const percent = referral?.referrerPercent ?? 0;
-                    const milestones = snapshotMilestones(offer, percent);
-                    if (!offer.usesOfferEvents) {
-                        // Preserve existing embedded IDs as links for clicks on older offers.
-                        await OfferEvent.bulkWrite(offer.events.filter(e => e.campaignEventId).map(e => ({
-                            updateOne: { filter: { _id: e._id }, update: { $setOnInsert: {
-                                offerId: offer._id, campaignEventId: e.campaignEventId._id, userPayout: e.userPayout
-                            } }, upsert: true }
-                        })), { session });
-                    }
-                    Object.assign(record, {
-                        referralId: referral?._id ?? null, appliedReferrerPercent: percent, milestones,
-                        maxUserEarningPaise: milestones.reduce((sum, m) => sum + m.userSharePaise, 0),
-                        earnedUserAmountPaise: 0, earnedReferrerAmountPaise: 0, advertiserAmount: 0, userRewardINR: 0
-                    });
-                    await clickRepo.createClickRecord(record, session);
-                    if (referral) {
-                        referral.totalClicks++;
-                        await referral.save({ session });
-                    }
+            await mongoose.connection.transaction(async session => {
+                const referral = await resolveReferral(offer._id, data.referralCode, session);
+                const percent = referral?.referrerPercent ?? 0;
+                const milestones = snapshotMilestones(offer, percent);
+                Object.assign(record, {
+                    referralId: referral?._id ?? null, appliedReferrerPercent: percent, milestones,
+                    maxUserEarningPaise: milestones.reduce((sum, m) => sum + m.userSharePaise, 0),
+                    earnedUserAmountPaise: 0, earnedReferrerAmountPaise: 0, advertiserAmount: 0, userRewardINR: 0
                 });
-            } else {
-                await clickRepo.createClickRecord(record);
-            }
+                await clickRepo.createClickRecord(record, session);
+                if (referral) {
+                    referral.totalClicks++;
+                    await referral.save({ session });
+                }
+            });
 
             // Final destination URL with replaced macros
             const destUrl = buildTrackingUrl(destinationUrl, {
@@ -107,7 +90,7 @@ class ClickService {
                 redirectUrl: destUrl || destinationUrl,
                 offerName: campaign?.name || offer?.offerName || 'Reward Task',
                 payoutAccount,
-                rewardINR: record.milestones ? record.maxUserEarningPaise / 100 : userRewardINR,
+                rewardINR: record.maxUserEarningPaise / 100,
                 maxUserEarningPaise: record.maxUserEarningPaise
             };
         } catch (error) {

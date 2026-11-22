@@ -1,5 +1,5 @@
 import Tracking from '../tracking/tracking.model.js';
-import Offer from '../offers/offer.model.js';
+import Offer, { populateOfferEvents } from '../offers/offer.model.js';
 import Revenue from '../conversions/revenue.model.js';
 import PostbackLog from './postbackLog.model.js';
 import logger from '../../core/logger.js';
@@ -12,7 +12,7 @@ class PostbackRepository {
                 select: '+postbackSecretKey',
                 populate: [
                     { path: 'campaignId' },
-                    { path: 'events.campaignEventId' }
+                    populateOfferEvents
                 ]
             });
         } catch (error) {
