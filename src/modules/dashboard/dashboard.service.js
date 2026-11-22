@@ -41,6 +41,8 @@ class DashboardService {
                 completedConversions,
                 totalRevenue,
                 totalUserPayouts,
+                totalRevenueINR: totalRevenue / 100,
+                totalUserPayoutsINR: totalUserPayouts / 100,
                 totalUsers
             };
         } catch (error) {

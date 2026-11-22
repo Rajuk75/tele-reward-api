@@ -55,7 +55,10 @@ class ConversionService {
                     totalUserPayouts: totalUser,
                     totalMargin: totalMargin,
                     totalConversions: totalConversions,
-                    marginPercentage: totalAdv > 0 ? Number(((totalMargin / totalAdv) * 100).toFixed(2)) : 0
+                    marginPercentage: totalAdv > 0 ? Number(((totalMargin / totalAdv) * 100).toFixed(2)) : 0,
+                    totalAdvertiserRevenueINR: totalAdv / 100,
+                    totalUserPayoutsINR: totalUser / 100,
+                    totalMarginINR: totalMargin / 100
                 }
             };
         } catch (error) {

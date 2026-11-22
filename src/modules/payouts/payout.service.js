@@ -44,7 +44,7 @@ class PayoutService {
                 notes: data.notes?.trim() || null
             };
 
-            logger.info(`payout.service.js << createPayout() >>>>>> [CREATE] Account:${payload.payoutAccount} | Amount:₹${payload.amount} | Type:${payload.type}`);
+            logger.info(`payout.service.js << createPayout() >>>>>> [CREATE] Account:${payload.payoutAccount} | AmountPaise:${payload.amount} (₹${payload.amount / 100}) | Type:${payload.type}`);
             return await payoutRepo.createPayout(payload);
         } catch (error) {
             logger.error(`payout.service.js << createPayout() >>>>>> [ERROR] ${error.message}`);

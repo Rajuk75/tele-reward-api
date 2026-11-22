@@ -111,7 +111,6 @@ class ClickService {
             earnedUserAmountPaise: 0,
             earnedReferrerAmountPaise: 0,
             advertiserAmount: 0,
-            userRewardINR: 0,
             status: 'clicked',
             ipAddress: reqMeta.ip || null,
             deviceDetails: { brand: 'Web/Telegram', userAgent: reqMeta.userAgent || null },

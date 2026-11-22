@@ -28,6 +28,12 @@ const PayoutSchema = new mongoose.Schema(
             default: null
         },
 
+        eventName: {
+            type: String,
+            default: null,
+            index: true
+        },
+
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
@@ -101,9 +107,9 @@ const PayoutSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Prevent duplicate payouts for the same tracking conversion
+// Prevent duplicate payouts for the same tracking conversion per event
 PayoutSchema.index(
-    { trackingId: 1, type: 1 },
+    { trackingId: 1, type: 1, eventName: 1 },
     { unique: true, partialFilterExpression: { trackingId: { $type: "objectId" } } }
 );
 
