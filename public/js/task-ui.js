@@ -24,46 +24,72 @@ const TaskUI = {
     },
 
     // ── DOM RENDERING (Displaying GET data) ──
+    offerText(value) {
+        if (typeof value !== 'string') return '';
+        const text = value.trim();
+        return /^(nil{1,2}|null|n\/a)$/i.test(text) ? '' : text;
+    },
+
+    renderOfferImage(id, source) {
+        const image = document.getElementById(id);
+        image.hidden = true;
+        image.onload = () => { image.hidden = false; };
+        image.onerror = () => { image.hidden = true; };
+        if (source) {
+            image.src = source;
+        } else {
+            image.removeAttribute('src');
+        }
+    },
+
     renderOfferDetails(offerData) {
+        const name = this.offerText(offerData.offerName) || 'Reward task';
+        document.getElementById('offerName').textContent = name;
+        document.getElementById('offerInitial').textContent = Array.from(name)[0].toUpperCase();
+        document.getElementById('offerCategory').textContent = this.offerText(offerData.category);
+        this.renderOfferImage('offerIcon', this.offerText(offerData.icon));
+        this.renderOfferImage('offerBanner', this.offerText(offerData.bannerUrl));
+
+        const hook = document.getElementById('offerHook');
+        hook.textContent = this.offerText(offerData.comment);
+        hook.hidden = !hook.textContent;
+
+        const currency = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+        const reward = offerData.totalRewardINR ?? offerData.rewardINR ?? 0;
+        document.getElementById('offerReward').textContent = currency.format(reward);
+
+        const spin = offerData.spinSettings;
+        const strip = document.getElementById('spinBonusStrip');
+        strip.hidden = true;
+        if (spin?.enabled && Array.isArray(spin.slices) && spin.slices.length >= 2) {
+            const amounts = spin.slices.map(Number);
+            if (amounts.every(amount => Number.isFinite(amount) && amount >= 0) && Math.max(...amounts) > 0) {
+                const money = new Intl.NumberFormat('en-IN', {
+                    style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2
+                });
+                const min = Math.min(...amounts);
+                const max = Math.max(...amounts);
+                const range = min === max ? money.format(max) : money.format(min) + '\u2013' + money.format(max);
+                document.getElementById('spinBonusText').textContent = 'Spin for an extra ' + range;
+                strip.hidden = false;
+            }
+        }
+
+        const steps = document.getElementById('offerStepsContainer');
+        steps.replaceChildren();
+        for (const line of this.offerText(offerData.steps).split('\n')) {
+            const text = this.offerText(line);
+            if (!text) continue;
+            const item = document.createElement('li');
+            item.textContent = text;
+            steps.appendChild(item);
+        }
+        document.getElementById('stepsSection').hidden = !steps.childElementCount;
+
+        const terms = document.getElementById('offerTerms');
+        terms.textContent = this.offerText(offerData.termsAndConditions);
+        document.getElementById('termsSection').hidden = !terms.textContent;
         this.showOfferContent();
-
-        const nameEl = document.getElementById('offerName');
-        if (nameEl) nameEl.textContent = offerData.offerName || 'Reward Task';
-
-        const catEl = document.getElementById('offerCategory');
-        if (catEl) catEl.textContent = (offerData.category || 'APP TASK').toUpperCase();
-
-        const rewardEl = document.getElementById('offerReward');
-        if (rewardEl) rewardEl.textContent = `Up to ₹${offerData.totalRewardINR ?? offerData.rewardINR ?? 0}`;
-
-        const hookEl = document.getElementById('offerHook');
-        if (hookEl && offerData.comment) {
-            hookEl.textContent = offerData.comment;
-        }
-
-        const iconEl = document.getElementById('offerIcon');
-        if (iconEl && offerData.icon) {
-            iconEl.src = offerData.icon;
-        }
-
-        // Render Step-by-Step Instructions
-        const stepsContainer = document.getElementById('offerStepsContainer');
-        if (stepsContainer) {
-            stepsContainer.innerHTML = '';
-            const rawStepsText = offerData.steps || 'Enter your payout account details.\nDownload and install the app.\nOpen app and complete registration to receive your reward.';
-            const stepItems = rawStepsText.split('\n').map(s => s.trim()).filter(Boolean);
-
-            stepItems.forEach((stepText) => {
-                const stepRow = document.createElement('div');
-                stepRow.className = 'text-xs text-slate-700 leading-relaxed font-medium';
-                stepRow.textContent = stepText;
-                stepsContainer.appendChild(stepRow);
-            });
-        }
-
-        // Render Terms
-        const termsEl = document.getElementById('offerTerms');
-        if (termsEl) termsEl.textContent = offerData.termsAndConditions || 'Complete the task honestly. Rewards are transferred to your provided UPI/Account upon event verification.';
     },
 
     setStartButtonLoadingState(isLoading) {
