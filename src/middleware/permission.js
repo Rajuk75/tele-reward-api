@@ -38,6 +38,12 @@ const ROLES = {
         // ── Dashboard & Postback logs ─────────────────────────────────────────
         'VIEW_DASHBOARD',
         'GET_POSTBACK_LOGS',
+
+        // ── Referral management ───────────────────────────────────────────────
+        'CREATE_REFERRAL',
+        'GET_ALL_REFERRALS',
+        'UPDATE_REFERRAL',
+        'DELETE_REFERRAL',
     ],
     [USER_TYPE_USER]: [
         'UPDATE_USER',

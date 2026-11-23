@@ -18,6 +18,13 @@ const OfferReferralSchema = new mongoose.Schema(
             index: true
         },
 
+        partnerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Partner',
+            required: true,
+            index: true
+        },
+
         referrerAccount: {
             type: String,
             required: true,
@@ -86,6 +93,7 @@ const OfferReferralSchema = new mongoose.Schema(
 
 OfferReferralSchema.virtual('refereePercent').get(function () { return 100 - this.referrerPercent; });
 
+OfferReferralSchema.index({ partnerId: 1, offerId: 1 });
 OfferReferralSchema.index({ referrerAccount: 1, offerId: 1 });
 OfferReferralSchema.index({ status: 1, createdAt: -1 });
 

@@ -39,6 +39,55 @@ class ReferralRepository {
         }
     }
 
+    async findReferrals(filter = {}, { skip = 0, limit = 20, sort = { createdAt: -1 } } = {}) {
+        try {
+            return await OfferReferral.find(filter)
+                .populate({
+                    path: 'offerId',
+                    select: 'offerName category campaignId',
+                    populate: { path: 'campaignId', select: 'name category' }
+                })
+                .populate({
+                    path: 'partnerId',
+                    select: 'name email phone category channelOrPageUrl'
+                })
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .lean();
+        } catch (error) {
+            logger.error(`referral.repo.js << findReferrals() << ${error.message}`);
+            throw error;
+        }
+    }
+
+    async countReferrals(filter = {}) {
+        try {
+            return await OfferReferral.countDocuments(filter);
+        } catch (error) {
+            logger.error(`referral.repo.js << countReferrals() << ${error.message}`);
+            throw error;
+        }
+    }
+
+    async updateReferral(id, updateData) {
+        try {
+            return await OfferReferral.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+        } catch (error) {
+            logger.error(`referral.repo.js << updateReferral() << ${error.message}`);
+            throw error;
+        }
+    }
+
+    async deleteReferral(id) {
+        try {
+            return await OfferReferral.findByIdAndDelete(id);
+        } catch (error) {
+            logger.error(`referral.repo.js << deleteReferral() << ${error.message}`);
+            throw error;
+        }
+    }
+
     async incrementStats(id, { clicks = 0, conversions = 0, earnings = 0 } = {}, session = null) {
         try {
             const inc = {};

@@ -16,6 +16,7 @@ import logger from "./src/core/logger.js";
 // Feature Slices
 import publicRoute     from "./src/modules/public/public.route.js";
 import referralRoute   from "./src/modules/referrals/referral.route.js";
+import partnerRoute    from "./src/modules/partners/partner.route.js";
 import authRoute       from "./src/modules/auth/auth.route.js";
 import campaignRoute   from "./src/modules/campaigns/campaign.route.js";
 import offerRoute      from "./src/modules/offers/offer.route.js";
@@ -91,6 +92,7 @@ app.get('/', (req, res) => {
 // ── Feature API Routes ──
 app.use('/', publicRoute);
 app.use('/', referralRoute);
+app.use('/', partnerRoute);
 app.use('/', authRoute);
 app.use('/', campaignRoute);
 app.use('/', offerRoute);
