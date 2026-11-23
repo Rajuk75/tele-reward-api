@@ -65,6 +65,13 @@ const TrackingSchema = new mongoose.Schema(
             index: true
         },
 
+        spinReward: {
+            bonusPaise: { type: Number, default: 0 },
+            isUsed: { type: Boolean, default: false },
+            isPaid: { type: Boolean, default: false },
+            paidAt: { type: Date, default: null }
+        },
+
         appliedReferrerPercent: Number,
         maxUserEarningPaise: Number,
         earnedUserAmountPaise: Number,
@@ -79,11 +86,6 @@ const TrackingSchema = new mongoose.Schema(
             status: { type: String, enum: ['pending', 'completed', 'scrubbed'] },
             completedAt: Date, advertiserTxId: String, conversionIp: String
         }], default: undefined },
-
-        completedEvent: {
-            type: String,
-            default: null
-        },
 
         completedEvents: [
             {
@@ -128,23 +130,6 @@ const TrackingSchema = new mongoose.Schema(
                         'scrubbed'
                     ],
                     default: 'auto_approved'
-                },
-                submittedProofs: [
-                    {
-                        label: { type: String },
-                        url: { type: String },
-                        value: { type: String },
-                        submittedAt: { type: Date, default: Date.now },
-                        _id: false
-                    }
-                ],
-                adminNote: {
-                    type: String,
-                    default: null
-                },
-                canReupload: {
-                    type: Boolean,
-                    default: false
                 },
                 _id: false
             }
@@ -207,19 +192,9 @@ const TrackingSchema = new mongoose.Schema(
             default: false
         },
 
-        postbackRawQuery: {
-            type: Object,
-            default: null
-        },
-
         clickedAt: {
             type: Date,
             default: Date.now
-        },
-
-        redirectedAt: {
-            type: Date,
-            default: null
         },
 
         conversionDate: {

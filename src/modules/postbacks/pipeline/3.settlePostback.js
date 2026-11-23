@@ -55,7 +55,6 @@ export async function settlePostback({ trackingId, matchedEvent, row, query, ip,
 
         if (allMilestonesDone) click.conversionDate = now;
         click.postbackReceived = true;
-        click.completedEvent = targetEvent.eventName;
         click.amountAwarded = userRewardPaise;
         click.totalAmountAwarded = click.earnedUserAmountPaise;
         click.advertiserAmount = (click.advertiserAmount || 0) + targetEvent.advertiserPayoutPaise;
@@ -86,8 +85,19 @@ export async function settlePostback({ trackingId, matchedEvent, row, query, ip,
         if (!isScrubbed) {
             const payoutsToCreate = [];
 
-            // User Payout (Task Completion)
+            // User Payout (Task Completion + Spin Bonus merged into a single transfer)
             if (userRewardPaise > 0) {
+                let totalUserPayoutPaise = userRewardPaise;
+                let payoutNotes = `Reward for ${targetEvent.eventName} event`;
+
+                // If user won a spin bonus and it is not paid yet, bundle into this event payout
+                if (click.spinReward?.bonusPaise > 0 && !click.spinReward?.isPaid) {
+                    totalUserPayoutPaise += click.spinReward.bonusPaise;
+                    click.spinReward.isPaid = true;
+                    click.spinReward.paidAt = now;
+                    payoutNotes += ` (Includes ₹${(click.spinReward.bonusPaise / 100).toFixed(2)} Lucky Spin Bonus)`;
+                }
+
                 payoutsToCreate.push({
                     type: 'offer_completion',
                     trackingId,
@@ -99,9 +109,9 @@ export async function settlePostback({ trackingId, matchedEvent, row, query, ip,
                     payoutType: click.payoutType || 'UPI',
                     payoutHolderName: click.payoutHolderName || null,
                     payoutIfsc: click.payoutIfsc || null,
-                    amount: userRewardPaise,
+                    amount: totalUserPayoutPaise,
                     status: 'unpaid',
-                    notes: `Reward for ${targetEvent.eventName} event`
+                    notes: payoutNotes
                 });
             }
 

@@ -154,7 +154,8 @@ class OfferService {
                 rewardINR: rows[0].userSharePaise / 100,
                 totalRewardINR: rows.reduce((sum, r) => sum + r.userSharePaise, 0) / 100,
                 icon: campaign?.imageUrl || campaign?.icon || campaign?.logoUrl || null,
-                referralCode: activeReferral?.referralCode || null
+                referralCode: activeReferral?.referralCode || null,
+                spinSettings: offer.spinSettings || { enabled: false, slices: [] }
             };
         } catch (error) {
             logger.error(`offer.service.js << getPublicOffer() << ${error.message}`);

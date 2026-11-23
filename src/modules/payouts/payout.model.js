@@ -4,7 +4,7 @@ const PayoutSchema = new mongoose.Schema(
     {
         type: {
             type: String,
-            enum: ['offer_completion', 'user_referral', 'offer_referral', 'registration_bonus', 'manual_bonus'],
+            enum: ['offer_completion', 'user_referral', 'offer_referral', 'registration_bonus', 'manual_bonus', 'spin_bonus'],
             default: 'offer_completion',
             index: true
         },

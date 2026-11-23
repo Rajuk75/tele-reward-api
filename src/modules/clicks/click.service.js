@@ -20,6 +20,38 @@ function resolveDestinationUrl(offer, campaign, payoutAccount) {
     return campaign.campaignUrl;
 }
 
+/**
+ * Validates and resolves spin bonus amount against offer settings.
+ * Anti-Tamper: Throws error if bonus is unauthorized or tampered.
+ */
+function resolveSpinBonus(rawBonus, offer) {
+    const rawSpinBonus = (rawBonus !== undefined && rawBonus !== null && rawBonus !== '')
+        ? Number(rawBonus)
+        : 0;
+
+    if (rawSpinBonus <= 0) {
+        return { bonusPaise: 0, isUsed: false };
+    }
+
+    const isSpinEnabled = offer.spinSettings?.enabled === true;
+    const allowedSlices = (offer.spinSettings?.slices || []).map(Number);
+
+    if (!isSpinEnabled) {
+        logger.warn(`click.service.js << rejected spin bonus ₹${rawSpinBonus} - spin feature disabled for offer ${offer._id}`);
+        throw new Error('Spin & Win bonus is not enabled for this offer.');
+    }
+
+    if (!Number.isFinite(rawSpinBonus) || !allowedSlices.includes(rawSpinBonus)) {
+        logger.warn(`click.service.js << Security Alert: Tampered spin bonus ₹${rawSpinBonus} rejected for offer ${offer._id}! Allowed slices: [${allowedSlices.join(', ')}]`);
+        throw new Error('Invalid or unauthorized spin bonus amount.');
+    }
+
+    return {
+        bonusPaise: Math.round(rawSpinBonus * 100),
+        isUsed: true
+    };
+}
+
 class ClickService {
 
     /**
@@ -95,7 +127,10 @@ class ClickService {
         logger.debug(`click.service.js << snapshotted ${milestones.length} milestones, maxUserReward: ₹${maxUserEarningPaise / 100}`);
         const clickId = uuidv4();
 
-        // 6. Persist Tracking Record
+        // 6. Spin Bonus Anti-Tamper & Whitelist Validation
+        const spinReward = resolveSpinBonus(data.spinBonus, offer);
+
+        // 7. Persist Tracking Record
         const record = {
             clickId,
             offerId: offer._id,
@@ -108,6 +143,12 @@ class ClickService {
             appliedReferrerPercent: referrerPercent,
             milestones,
             maxUserEarningPaise,
+            spinReward: {
+                bonusPaise: spinReward.bonusPaise,
+                isUsed: spinReward.isUsed,
+                isPaid: false,
+                paidAt: null
+            },
             earnedUserAmountPaise: 0,
             earnedReferrerAmountPaise: 0,
             advertiserAmount: 0,

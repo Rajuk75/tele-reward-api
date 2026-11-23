@@ -52,6 +52,16 @@ const OfferSchema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
+        spinSettings: {
+            enabled: {
+                type: Boolean,
+                default: false
+            },
+            slices: {
+                type: [Number],
+                default: [5, 10, 15, 20, 25]
+            }
+        },
         type: {
             type: String,
             default: 'app_install',
