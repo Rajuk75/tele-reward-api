@@ -18,8 +18,8 @@
 
         body { background: #f3f5ef; color: #122b23; }
         #offerContent.hidden, [hidden] { display: none !important; }
-        #appHeader > div, .task-shell { max-width: 980px; margin-inline: auto; }
-        .task-shell { padding: clamp(18px, 4vw, 48px) 16px 96px; }
+        #appHeader > nav, .task-shell { max-width: 980px; margin-inline: auto; }
+        .task-shell { padding: clamp(18px, 4vw, 48px) 16px 32px; }
         .offer-layout { display: grid; gap: 16px; align-items: start; }
         .offer-layout > * { min-width: 0; }
         .ticket, .payout-card { border: 1px solid #d5dfd8; border-radius: 22px; overflow: hidden; background: white; }
@@ -47,10 +47,43 @@
         #payoutMethodTabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 20px 0 16px; }
         #payoutMethodTabs button { min-height: 44px; }
         #payoutFormsContainer input { font-size: 16px; }
-        #claimBtn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; margin-top: 18px;
+        #claimBtn, #openPayout { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; margin-top: 18px;
             padding: 14px; background: #126443; color: white; font-size: 15px; font-weight: 700; border-radius: 12px; }
-        #claimBtn:not(:disabled)::after { content: "\2192"; }
-        #claimBtn:hover { background: #104e36; }
+        #claimBtn:not(:disabled)::after, #openPayout::after { content: "\2192"; }
+        #claimBtn:hover, #openPayout:hover { background: #104e36; }
+        #openPayout { margin: 0; }
+        .payout-column { display: grid; gap: 16px; }
+        .recent-payouts { padding: 8px 6px; }
+        .recent-payouts header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+        .recent-payouts h2 { font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
+        .recent-payouts small { color: #56675e; font-size: 12px; }
+        .payout-list { list-style: none; padding: 0; margin: 8px 0 0; }
+        .payout-list li { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px; padding: 10px 0; }
+        .payout-list li + li { border-top: 1px solid #d5dfd8; }
+        .payout-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+            background: #e4dcf3; color: #54446f; font-weight: 700; }
+        .payout-list li:nth-child(2) .payout-avatar { background: #f3e3ce; color: #765330; }
+        .payout-list li:nth-child(3) .payout-avatar { background: #d9e8e0; color: #355c47; }
+        .payout-person { font-size: 14px; font-weight: 700; }
+        .payout-person small { display: block; font-weight: 400; }
+        .payout-list strong { color: #145a40; font-size: 15px; font-variant-numeric: tabular-nums; }
+        #payoutSheet { position: fixed; inset: auto 0 0; margin: 0; width: 100%; max-width: none;
+            max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain;
+            border: 0; border-radius: 24px 24px 0 0; padding: 0 0 env(safe-area-inset-bottom); background: white; color: inherit; }
+        #payoutSheet:not([open]) { display: none; }
+        #payoutSheet::backdrop { background: rgb(11 31 23 / 55%); }
+        #payoutSheet .payout-card { border: 0; }
+        #payoutSheet .payout-card h2 { padding-right: 44px; }
+        #payoutSheet::before { content: ""; display: block; margin: 10px auto 0; width: 38px; height: 4px; background: #c8d4cb; border-radius: 4px; }
+        #closePayout { position: absolute; right: 12px; top: 20px; width: 44px; height: 44px; font-size: 24px; }
+        #payoutWarning { color: #a32d24; font-size: 14px; margin-top: 12px; }
+        html:has(#payoutSheet[open]) { overflow: hidden; }
+        @media (prefers-reduced-motion: no-preference) {
+            #payoutSheet[open] { animation: payout-rise .24s ease-out; }
+            @keyframes payout-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        }
+        @media (max-width: 767.98px) { #payoutHome { display: none; } }
+        @media (min-width: 768px) { #openPayout { display: none; } }
         #claimBtn:disabled { opacity: .7; cursor: wait; }
         :focus-visible { outline: 3px solid #258869; outline-offset: 3px; }
         @media (min-width: 768px) { .offer-layout { grid-template-columns: 1.15fr 1fr; gap: 24px; } }
@@ -60,7 +93,7 @@
 <body class="antialiased min-h-screen">
 
     <!-- ── TOP NAVIGATION ── -->
-    <header id="appHeader" class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-sm"></header>
+    <header id="appHeader" class="bg-black border-b border-neutral-800 sticky top-0 z-30 shadow-sm"></header>
 
     <!-- ── MAIN CONTENT CONTAINER ── -->
     <main class="task-shell">
@@ -125,22 +158,57 @@
                     </details>
                 </div>
             </article>
-            <section class="payout-card" aria-labelledby="payoutHeading">
-                <h2 id="payoutHeading">Your payout details</h2>
-                <p class="offer-copy">Choose where to receive your reward.</p>
-                <div id="payoutMethodTabs" role="group" aria-label="Payout method"></div>
-                <div id="payoutFormsContainer"></div>
-                <button type="button" id="claimBtn" onclick="window.taskApp.handleStartTaskAndClaim()">Continue</button>
-            </section>
+            <div class="payout-column">
+                <button type="button" id="openPayout" aria-haspopup="dialog" aria-controls="payoutSheet">Continue</button>
+                <div id="payoutHome">
+                    <section id="payoutCard" class="payout-card" aria-labelledby="payoutHeading">
+                        <h2 id="payoutHeading">Your payout details</h2>
+                        <p class="offer-copy">Choose where to receive your reward.</p>
+                        <div id="payoutMethodTabs" role="group" aria-label="Payout method"></div>
+                        <div id="payoutFormsContainer"></div>
+                        <p id="payoutWarning" role="alert" hidden></p>
+                        <button type="button" id="claimBtn" onclick="window.taskApp.handleStartTaskAndClaim()">Continue</button>
+                    </section>
+                </div>
+                <section class="recent-payouts" aria-labelledby="recentPayoutHeading">
+                    <header>
+                        <h2 id="recentPayoutHeading">Recent payouts</h2>
+                        <small>Demo data</small>
+                    </header>
+                    <ul class="payout-list">
+                        <li>
+                            <span class="payout-avatar" aria-hidden="true">R</span>
+                            <span class="payout-person">R&bull;&bull;&bull;<small>12 minutes ago</small></span>
+                            <strong>&#8377;17.50</strong>
+                        </li>
+                        <li>
+                            <span class="payout-avatar" aria-hidden="true">A</span>
+                            <span class="payout-person">A&bull;&bull;&bull;<small>38 minutes ago</small></span>
+                            <strong>&#8377;28.00</strong>
+                        </li>
+                        <li>
+                            <span class="payout-avatar" aria-hidden="true">S</span>
+                            <span class="payout-person">S&bull;&bull;&bull;<small>1 hour ago</small></span>
+                            <strong>&#8377;17.50</strong>
+                        </li>
+                    </ul>
+                </section>
+                <section aria-labelledby="aboutHeading" class="border-t border-[#d5dfd8] px-1.5 pt-4">
+                    <h2 id="aboutHeading" class="text-sm font-bold">About adsHamper</h2>
+                    <p class="mt-1 text-sm leading-relaxed text-[#506357]">With adsHamper, you can earn rewards by completing offer tasks. Choose UPI or a bank account to receive your payout after verification.</p>
+                    <a href="/status" class="mt-2 inline-flex py-1 text-sm font-semibold text-[#145a40] underline underline-offset-4">Track your earnings</a>
+                </section>
+            </div>
         </div>
 
     </main>
+    <dialog id="payoutSheet" aria-labelledby="payoutHeading">
+        <button type="button" id="closePayout" aria-label="Close payout details">&times;</button>
+    </dialog>
 
-    <!-- ── BOTTOM NAVIGATION (Mobile Only: md:hidden) ── -->
-    <nav id="appBottomNav" data-active-tab="offer" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg"></nav>
 
     <!-- ── MODULAR JAVASCRIPT BUNDLES ── -->
-    <script src="/js/app-navbar.js?v=2"></script>
+    <script src="/js/app-navbar.js?v=7"></script>
     <script src="/js/task-api.js"></script>
     <script src="/js/task-notifications.js"></script>
     <script src="/js/task-payment.js"></script>

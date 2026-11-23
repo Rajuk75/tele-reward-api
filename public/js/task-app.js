@@ -13,6 +13,7 @@ class TaskApp {
     async initializeTaskPage() {
         TaskUI.showLoadingSkeleton();
         TaskPaymentForm.init();
+        TaskUI.initPayoutSheet();
 
         const offerId = this.currentOffer?.id || TaskAPI.extractOfferIdFromUrl();
         try {
@@ -28,12 +29,23 @@ class TaskApp {
      * Validates payment form first, then opens the Spin & Win Bonus Modal
      */
     async handleStartTaskAndClaim() {
+        const sheet = document.getElementById('payoutSheet');
+        const fromSheet = sheet.open;
+        const warning = document.getElementById('payoutWarning');
+        warning.hidden = true;
         const formValidation = await TaskPaymentForm.getPaymentFormData();
+        if (fromSheet && !sheet.open) return;
         if (!formValidation.isValid) {
+            if (fromSheet) {
+                warning.textContent = formValidation.validationError;
+                warning.hidden = false;
+                return;
+            }
             TaskAlerts.showValidationWarning('Information Required', formValidation.validationError);
             return;
         }
 
+        if (fromSheet) sheet.close();
         const rewardAmount = this.currentOffer?.totalRewardINR ?? this.currentOffer?.rewardINR ?? 0;
         const spinConfig = this.currentOffer?.spinSettings;
 

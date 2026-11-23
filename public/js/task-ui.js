@@ -3,6 +3,33 @@
  * Handles UI display states (loading/error/content), DOM population for offer data, and click history.
  */
 const TaskUI = {
+    initPayoutSheet() {
+        const sheet = document.getElementById('payoutSheet');
+        const card = document.getElementById('payoutCard');
+        const home = document.getElementById('payoutHome');
+        const warning = document.getElementById('payoutWarning');
+        const desktop = window.matchMedia('(min-width: 768px)');
+
+        document.getElementById('openPayout').addEventListener('click', () => {
+            if (desktop.matches || sheet.open) return;
+            warning.hidden = true;
+            sheet.appendChild(card);
+            sheet.showModal();
+        });
+        document.getElementById('closePayout').addEventListener('click', () => sheet.close());
+        sheet.addEventListener('click', event => {
+            if (event.target === sheet && event.clientY < sheet.getBoundingClientRect().top) sheet.close();
+        });
+        sheet.addEventListener('close', () => {
+            if (sheet.open) return;
+            warning.hidden = true;
+            home.appendChild(card);
+        });
+        desktop.addEventListener('change', () => {
+            if (desktop.matches && sheet.open) sheet.close();
+        });
+    },
+
     showLoadingSkeleton() {
         document.getElementById('loadingState')?.classList.remove('hidden');
         document.getElementById('errorState')?.classList.add('hidden');
