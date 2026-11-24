@@ -95,6 +95,21 @@ class OfferRepository {
             throw error;
         }
     }
+
+    async updateOffer(id, updateData, session) {
+        try {
+            const offer = await Offer.findOneAndUpdate(
+                { _id: id, isDeleted: false },
+                { $set: updateData },
+                { new: true, session }
+            );
+            if (!offer) throw new Error('Offer not found');
+            return offer;
+        } catch (error) {
+            logger.error(`offer.repo.js << updateOffer() << ${error.message}`);
+            throw error;
+        }
+    }
 }
 
 export default new OfferRepository();

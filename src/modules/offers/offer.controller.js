@@ -44,6 +44,17 @@ class OfferController {
         }
     };
 
+    updateOffer = async (req, res) => {
+        try {
+            const offerId = req.params.offerId || req.params.id;
+            const result = await offerService.updateOffer(offerId, req.body);
+            return setSuccess(res, result);
+        } catch (error) {
+            logger.error(`offer.controller.js << updateOffer << ${error.message}`);
+            return setBadRequest(res, error.message);
+        }
+    };
+
     getPublicOffer = async (req, res) => {
         try {
             const offerId = req.params.offerId || req.query.offerId;

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import offerRepo from './offer.repo.js';
+import OfferEvent from './offerEvent.model.js';
 import Campaign from '../campaigns/campaign.model.js';
 import CampaignEvent from '../campaigns/campaignEvent.model.js';
 import { snapshotMilestones } from '../tracking/milestones.js';
@@ -109,6 +110,63 @@ class OfferService {
         } catch (error) {
             logger.error(`offer.service.js << updateOfferStatus() << ${error.message}`);
             throw error;
+        }
+    }
+
+    async updateOffer(id, { offer, events, ...restData } = {}) {
+        const existingOffer = await offerRepo.findOfferById(id, { populate: false });
+        if (!existingOffer) throw new Error('Offer not found');
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            const rawOffer = offer || restData;
+            const updatePayload = {};
+
+            if (rawOffer.offerName !== undefined) updatePayload.offerName = rawOffer.offerName.trim();
+            if (rawOffer.comment !== undefined) updatePayload.comment = rawOffer.comment;
+            if (rawOffer.steps !== undefined) updatePayload.steps = rawOffer.steps;
+            if (rawOffer.termsAndConditions !== undefined) updatePayload.termsAndConditions = rawOffer.termsAndConditions;
+            if (rawOffer.referTermsAndConditions !== undefined) updatePayload.referTermsAndConditions = rawOffer.referTermsAndConditions;
+            if (rawOffer.status !== undefined) updatePayload.status = rawOffer.status;
+            if (rawOffer.oneUpiOneTime !== undefined) updatePayload.oneUpiOneTime = rawOffer.oneUpiOneTime;
+            if (rawOffer.offerDisplay !== undefined) updatePayload.offerDisplay = rawOffer.offerDisplay;
+            if (rawOffer.priority !== undefined) updatePayload.priority = Number(rawOffer.priority) || 1;
+            if (rawOffer.background !== undefined) updatePayload.background = rawOffer.background;
+            if (rawOffer.backgroundImage !== undefined) updatePayload.backgroundImage = rawOffer.backgroundImage;
+            if (rawOffer.jumperRatio !== undefined) updatePayload.jumperRatio = rawOffer.jumperRatio;
+            if (rawOffer.jumperUrl !== undefined) updatePayload.jumperUrl = rawOffer.jumperUrl;
+            if (rawOffer.inputs !== undefined) updatePayload.inputs = rawOffer.inputs;
+
+            if (rawOffer.spinSettings !== undefined) {
+                updatePayload.spinSettings = {
+                    enabled: !!rawOffer.spinSettings?.enabled,
+                    slices: Array.isArray(rawOffer.spinSettings?.slices) ? rawOffer.spinSettings.slices : [5, 10, 15, 20, 25]
+                };
+            }
+
+            if (Object.keys(updatePayload).length > 0) {
+                await offerRepo.updateOffer(id, updatePayload, session);
+            }
+
+            if (Array.isArray(events) && events.length > 0) {
+                await OfferEvent.deleteMany({ offerId: id }).session(session);
+                await offerRepo.createOfferEvents(events.map(({ campaignEventId, userPayout }) => ({
+                    offerId: id,
+                    campaignEventId,
+                    userPayout: Number(userPayout) || 0
+                })), session);
+            }
+
+            await session.commitTransaction();
+            return await offerRepo.findOfferById(id);
+        } catch (error) {
+            await session.abortTransaction();
+            logger.error(`offer.service.js << updateOffer() << ${error.message}`);
+            throw error;
+        } finally {
+            session.endSession();
         }
     }
 

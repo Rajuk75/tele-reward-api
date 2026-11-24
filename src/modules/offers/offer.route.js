@@ -7,6 +7,7 @@ const router = express.Router();
 router.post('/v1/admin/offers', checkPermission('CREATE_OFFER'), offerController.createOffer);
 router.get('/v1/admin/offers', checkPermission('GET_ALL_OFFERS'), offerController.getAllOffers);
 router.delete('/v1/admin/offers/:offerId', checkPermission('DELETE_OFFER'), offerController.deleteOffer);
+router.put('/v1/admin/offers/:offerId', checkPermission('UPDATE_OFFER'), offerController.updateOffer);
 router.patch('/v1/admin/offers/:offerId/status', checkPermission('UPDATE_OFFER'), offerController.updateOfferStatus);
 
 // ── Public Offer & Task APIs (No Auth Required) ──
