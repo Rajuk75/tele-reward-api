@@ -21,9 +21,10 @@ class OfferRepository {
         }
     }
 
-    async findOfferById(id, { populate = true } = {}) {
+    async findOfferById(id, { populate = true, includePostback = false } = {}) {
         try {
             const query = Offer.findOne({ _id: id, isDeleted: false });
+            if (includePostback) query.select('+postbackUrl');
             if (populate) {
                 query.populate('campaignId').populate(populateOfferEvents);
             }
@@ -86,7 +87,7 @@ class OfferRepository {
             const offer = await Offer.findOneAndUpdate(
                 { _id: id, isDeleted: false },
                 { $set: { status, isActive: status === 'active' } },
-                { new: true }
+                { new: true, runValidators: true }
             );
             if (!offer) throw new Error('Offer not found');
             return offer;
@@ -101,7 +102,7 @@ class OfferRepository {
             const offer = await Offer.findOneAndUpdate(
                 { _id: id, isDeleted: false },
                 { $set: updateData },
-                { new: true, session }
+                { new: true, session, runValidators: true }
             );
             if (!offer) throw new Error('Offer not found');
             return offer;

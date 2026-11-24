@@ -33,6 +33,7 @@ class OfferService {
             const postbackSecretKey = uuidv4();
             const createdOffer = await offerRepo.createOffer({
                 ...offer,
+                isActive: (offer.status ?? 'active') === 'active',
                 campaignId: campaign._id,
                 offerName: offer.offerName?.trim() || campaign.name,
                 category: campaign.category,
@@ -95,7 +96,7 @@ class OfferService {
 
     async getOfferById(id) {
         try {
-            const offer = await offerRepo.findOfferById(id, { populate: true });
+            const offer = await offerRepo.findOfferById(id, { populate: true, includePostback: true });
             if (!offer) throw new Error('Offer not found');
             const events = Array.isArray(offer.events) ? offer.events : [];
             return {
@@ -145,12 +146,16 @@ class OfferService {
             if (rawOffer.steps !== undefined) updatePayload.steps = rawOffer.steps;
             if (rawOffer.termsAndConditions !== undefined) updatePayload.termsAndConditions = rawOffer.termsAndConditions;
             if (rawOffer.referTermsAndConditions !== undefined) updatePayload.referTermsAndConditions = rawOffer.referTermsAndConditions;
-            if (rawOffer.status !== undefined) updatePayload.status = rawOffer.status;
+            if (rawOffer.status !== undefined) {
+                updatePayload.status = rawOffer.status;
+                updatePayload.isActive = rawOffer.status === 'active';
+            }
             if (rawOffer.oneUpiOneTime !== undefined) updatePayload.oneUpiOneTime = rawOffer.oneUpiOneTime;
             if (rawOffer.offerDisplay !== undefined) updatePayload.offerDisplay = rawOffer.offerDisplay;
             if (rawOffer.priority !== undefined) updatePayload.priority = Number(rawOffer.priority) || 1;
             if (rawOffer.background !== undefined) updatePayload.background = rawOffer.background;
             if (rawOffer.backgroundImage !== undefined) updatePayload.backgroundImage = rawOffer.backgroundImage;
+            if (rawOffer.jumperEnabled !== undefined) updatePayload.jumperEnabled = rawOffer.jumperEnabled;
             if (rawOffer.jumperRatio !== undefined) updatePayload.jumperRatio = rawOffer.jumperRatio;
             if (rawOffer.jumperUrl !== undefined) updatePayload.jumperUrl = rawOffer.jumperUrl;
             if (rawOffer.inputs !== undefined) updatePayload.inputs = rawOffer.inputs;
@@ -166,19 +171,38 @@ class OfferService {
                 await offerRepo.updateOffer(id, updatePayload, session);
             }
 
-            if (Array.isArray(events) && events.length > 0) {
-                await OfferEvent.deleteMany({ offerId: id }).session(session);
-                await offerRepo.createOfferEvents(events.map(({ campaignEventId, userPayout }) => ({
-                    offerId: id,
-                    campaignEventId,
-                    userPayout: Number(userPayout) || 0
-                })), session);
+            if (events !== undefined) {
+                if (!Array.isArray(events) || !events.length) throw new Error('Select at least one campaign event');
+                const ids = events.map(event => event?.campaignEventId);
+                if (ids.some(value => !mongoose.isObjectIdOrHexString(value)) || new Set(ids.map(String)).size !== ids.length) {
+                    throw new Error('Select each campaign event only once');
+                }
+                if (events.some(({ userPayout }) => !['number', 'string'].includes(typeof userPayout)
+                    || String(userPayout).trim() === '' || !Number.isFinite(Number(userPayout)) || Number(userPayout) < 0)) {
+                    throw new Error('Enter a non-negative user payout for each event');
+                }
+                const linked = await OfferEvent.find({ offerId: id }).distinct('campaignEventId').session(session);
+                const eligible = await CampaignEvent.countDocuments({
+                    _id: { $in: ids }, campaignId: existingOffer.campaignId,
+                    $or: [{ status: 'active', isDeleted: false }, { _id: { $in: linked } }],
+                }).session(session);
+                if (eligible !== ids.length) throw new Error('Select eligible events from the linked campaign');
+
+                // Keep the link IDs used by tracking snapshots when adjusting payouts.
+                await OfferEvent.deleteMany({ offerId: id, campaignEventId: { $nin: ids } }).session(session);
+                await OfferEvent.bulkWrite(events.map(({ campaignEventId, userPayout }) => ({
+                    updateOne: {
+                        filter: { offerId: id, campaignEventId },
+                        update: { $set: { userPayout: Number(userPayout) } },
+                        upsert: true,
+                    },
+                })), { session });
             }
 
             await session.commitTransaction();
-            return await offerRepo.findOfferById(id);
+            return await this.getOfferById(id);
         } catch (error) {
-            await session.abortTransaction();
+            if (session.inTransaction()) await session.abortTransaction();
             logger.error(`offer.service.js << updateOffer() << ${error.message}`);
             throw error;
         } finally {

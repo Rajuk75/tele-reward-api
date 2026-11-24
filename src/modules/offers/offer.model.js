@@ -99,6 +99,7 @@ const OfferSchema = new mongoose.Schema(
             default: null,
             select: false
         },
+        inputs: [{ label: String, type: { type: String }, order: Number }],
         backgroundImage: {
             type: String,
             default: null
