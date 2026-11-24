@@ -20,8 +20,9 @@ export default {
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
   S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
   PAYOUT: {
-    ENABLED: process.env.PAYOUT_ENABLED !== 'false',
-    AUTO_PAYOUT_ENABLED: process.env.PAYOUT_AUTO_ENABLED !== 'false',
+    PROVIDER: 'freefokat',
+    ENABLED: process.env.PAYOUT_ENABLED === 'true',
+    AUTO_PAYOUT_ENABLED: process.env.PAYOUT_AUTO_ENABLED === 'true',
     MAX_AUTO_PAYOUT_AMOUNT: Number(process.env.MAX_AUTO_PAYOUT_AMOUNT) || 500,
     API_KEY: process.env.PAYOUT_API_KEY,
     SECRET_KEY: process.env.PAYOUT_SECRET_KEY,

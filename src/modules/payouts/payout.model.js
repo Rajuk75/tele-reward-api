@@ -72,12 +72,28 @@ const PayoutSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ['unpaid', 'paid', 'failed'],
+            enum: ['unpaid', 'processing', 'paid', 'failed'],
             default: 'unpaid',
             index: true
         },
 
+        payoutTransactionId: {
+            type: String,
+            default: null,
+            index: true
+        },
+
         utr: {
+            type: String,
+            default: null
+        },
+
+        payoutResponse: {
+            type: mongoose.Schema.Types.Mixed,
+            default: null
+        },
+
+        failureReason: {
             type: String,
             default: null
         },

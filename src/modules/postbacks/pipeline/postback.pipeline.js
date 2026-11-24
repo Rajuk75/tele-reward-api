@@ -37,7 +37,7 @@ export async function executePostbackPipeline({ clickId, secret, ip, query = {} 
         });
 
         // =====================================================================
-        // STEP 4: ASYNC EVENT BUS EMISSION (TELEGRAM BOT / SMS / WEBHOOKS)
+        // STEP 4: ASYNC EVENT BUS EMISSION (HANDLES AUTO-PAYOUT & SIDE EFFECTS)
         // =====================================================================
         try {
             postbackEvents.emit(POSTBACK_EVENTS.CONVERSION_SETTLED, result);

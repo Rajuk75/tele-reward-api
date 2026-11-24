@@ -44,6 +44,11 @@ const ROLES = {
         'GET_ALL_REFERRALS',
         'UPDATE_REFERRAL',
         'DELETE_REFERRAL',
+
+        // ── Payout management ─────────────────────────────────────────────────
+        'GET_ALL_PAYOUTS',
+        'SEND_PAYOUT',
+        'MANAGE_PAYOUTS',
     ],
     [USER_TYPE_USER]: [
         'UPDATE_USER',
