@@ -93,6 +93,22 @@ class OfferService {
         }
     }
 
+    async getOfferById(id) {
+        try {
+            const offer = await offerRepo.findOfferById(id, { populate: true });
+            if (!offer) throw new Error('Offer not found');
+            const events = Array.isArray(offer.events) ? offer.events : [];
+            return {
+                ...offer,
+                totalPayout: events.reduce((sum, event) => sum + (event.userPayout || 0), 0),
+                totalCap: events.reduce((sum, event) => sum + (event.campaignEventId?.cap || 0), 0)
+            };
+        } catch (error) {
+            logger.error(`offer.service.js << getOfferById() << ${error.message}`);
+            throw error;
+        }
+    }
+
     async deleteOffer(id) {
         try {
             await offerRepo.softDeleteOffer(id);

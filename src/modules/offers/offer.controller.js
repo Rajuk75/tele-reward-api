@@ -24,6 +24,17 @@ class OfferController {
         }
     };
 
+    getOfferById = async (req, res) => {
+        try {
+            const offerId = req.params.offerId || req.params.id;
+            const result = await offerService.getOfferById(offerId);
+            return setSuccess(res, result);
+        } catch (error) {
+            logger.error(`offer.controller.js << getOfferById << ${error.message}`);
+            return setBadRequest(res, error.message);
+        }
+    };
+
     deleteOffer = async (req, res) => {
         try {
             const result = await offerService.deleteOffer(req.params.offerId || req.params.id);
