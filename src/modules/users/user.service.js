@@ -74,13 +74,23 @@ class UserService {
 
             const skip = (Number(page) - 1) * Number(limit);
 
-            const [total, users] = await Promise.all([
+            const baseStatsFilter = { isDeleted: false };
+
+            const [total, users, totalAll, activeCount, inactiveCount] = await Promise.all([
                 userRepo.countUsers(filter),
-                userRepo.findUsers(filter, { skip, limit: Number(limit) })
+                userRepo.findUsers(filter, { skip, limit: Number(limit) }),
+                userRepo.countUsers(baseStatsFilter),
+                userRepo.countUsers({ ...baseStatsFilter, isActive: true }),
+                userRepo.countUsers({ ...baseStatsFilter, isActive: false })
             ]);
 
             return {
                 users,
+                stats: {
+                    total: totalAll,
+                    active: activeCount,
+                    inactive: inactiveCount
+                },
                 pagination: {
                     total,
                     page: Number(page),
