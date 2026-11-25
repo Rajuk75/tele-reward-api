@@ -25,6 +25,15 @@ class PostbackController {
         }
     }
 
+    async getOverview(req, res) {
+        try {
+            return setSuccess(res, await postbackService.getOverview());
+        } catch (error) {
+            logger.error(`postback.controller.js << getOverview << ${error.message}`);
+            return res.status(500).json({ message: 'Unable to load postback overview' });
+        }
+    }
+
     async getPostbackLogs(req, res) {
         try {
             const result = await postbackService.getPostbackLogs(req.query);

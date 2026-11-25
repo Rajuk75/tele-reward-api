@@ -4,6 +4,26 @@ import mongoose from 'mongoose';
 import logger from '../../core/logger.js';
 
 class ClickRepository {
+    async listClicks({ filter, date, search, skip, limit }) {
+        if (date) filter.clickedAt = date;
+        if (search) filter.$or = [{ clickId: search }, { payoutAccount: search }, { ipAddress: search }, { 'urlParams.source': search }];
+        const [rows, groups] = await Promise.all([
+            Tracking.find(filter).populate('campaignId', 'name category').populate('offerId', 'offerName')
+                .populate('userId', 'name email phone').sort({ clickedAt: -1, _id: -1 }).skip(skip).limit(limit).lean(),
+            Tracking.aggregate([
+                { $match: filter },
+                { $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    referral: { $sum: { $cond: [{ $ifNull: ['$referralId', false] }, 1, 0] } },
+                    completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
+                } },
+                { $project: { _id: 0, total: 1, referral: 1, completed: 1 } },
+            ]),
+        ]);
+        return { rows, summary: groups[0] ?? { total: 0, referral: 0, completed: 0 } };
+    }
+
     async findOfferForClick(offerId) {
         try {
             if (!offerId || !mongoose.Types.ObjectId.isValid(offerId)) return null;

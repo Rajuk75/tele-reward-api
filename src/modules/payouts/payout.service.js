@@ -1,3 +1,4 @@
+import { reportQuery, pagination } from '../../core/reportQuery.js';
 import mongoose from 'mongoose';
 import payoutRepo from './payout.repo.js';
 import freeFokatPayout from '../../core/freeFokatPayout.utility.js';
@@ -59,57 +60,21 @@ class PayoutService {
     // Admin: List All Payouts with Filtering & Pagination
     // ==========================================================================
 
-    async getPayouts({ page = 1, limit = 20, status = '', type = '', search = '', startDate = '', endDate = '' } = {}) {
-        try {
-            logger.info(`payout.service.js << getPayouts() >>>>>> [FETCH] page:${page} limit:${limit} status:${status || 'all'}`);
-
-            const filter = {};
-            if (status) filter.status = status;
-            if (type) filter.type = type;
-
-            if (search) {
-                const cleanSearch = search.trim();
-                filter.$or = [
-                    { payoutAccount: { $regex: cleanSearch, $options: 'i' } },
-                    { clickId: { $regex: cleanSearch, $options: 'i' } },
-                    { utr: { $regex: cleanSearch, $options: 'i' } }
-                ];
-            }
-
-            if (startDate || endDate) {
-                filter.createdAt = {};
-                if (startDate) filter.createdAt.$gte = new Date(startDate);
-                if (endDate) {
-                    const end = new Date(endDate);
-                    end.setHours(23, 59, 59, 999);
-                    filter.createdAt.$lte = end;
-                }
-            }
-
-            const skip = (Number(page) - 1) * Number(limit);
-            const [payouts, total] = await Promise.all([
-                payoutRepo.findPayouts(filter, { skip, limit: Number(limit) }),
-                payoutRepo.countPayouts(filter)
-            ]);
-
-            return {
-                payouts,
-                pagination: {
-                    total,
-                    page: Number(page),
-                    limit: Number(limit),
-                    totalPages: Math.ceil(total / Number(limit))
-                }
-            };
-        } catch (error) {
-            logger.error(`payout.service.js << getPayouts() >>>>>> [ERROR] ${error.message}`);
-            throw error;
+    async getPayouts(params = {}) {
+        const { page, limit, skip, search, date, filter } = reportQuery(params);
+        if (params.type) {
+            if (typeof params.type !== 'string') throw new Error('Invalid payout type');
+            filter.type = params.type;
         }
+        if (date) filter.createdAt = date;
+        if (search) filter.$or = [{ payoutAccount: search }, { clickId: search }, { utr: search }, { payoutHolderName: search }, { payoutTransactionId: search }];
+        const [payouts, summary] = await Promise.all([
+            payoutRepo.findPayouts(filter, { skip, limit, sort: { createdAt: -1, _id: -1 } }),
+            payoutRepo.summarize(filter),
+        ]);
+        const total = summary.reduce((sum, group) => sum + group.count, 0);
+        return { payouts, summary, pagination: pagination(page, limit, total) };
     }
-
-    // ==========================================================================
-    // Send Payout via Gateway (FreeFokat)
-    // ==========================================================================
 
     async sendPayout(payoutId, adminUserId = null) {
         let payout = null;

@@ -1,3 +1,5 @@
+import { reportQuery, pagination } from '../../core/reportQuery.js';
+import conversionRepo from './conversion.repo.js';
 import Tracking from '../tracking/tracking.model.js';
 import Offer from '../offers/offer.model.js';
 import Campaign from '../campaigns/campaign.model.js';
@@ -35,8 +37,10 @@ class ConversionService {
                     {
                         $group: {
                             _id: null,
-                            totalAdvertiserRevenue: { $sum: '$advertiserAmount' },
-                            totalUserPayouts: { $sum: '$userRewardINR' },
+                            totalAdvertiserRevenue: { $sum: { $cond: [
+                                { $isArray: '$milestones' }, '$advertiserAmount', { $multiply: ['$advertiserAmount', 100] },
+                            ] } },
+                            totalUserPayouts: { $sum: { $ifNull: ['$earnedUserAmountPaise', { $multiply: ['$userRewardINR', 100] }] } },
                             count: { $sum: 1 }
                         }
                     }
@@ -66,69 +70,10 @@ class ConversionService {
             throw error;
         }
     };
-    getConversions = async (params = {}) => {
-        try {
-            const {
-                page = 1,
-                limit = 15,
-                status,
-                offerId,
-                campaignId,
-                search,
-                startDate,
-                endDate
-            } = params;
-
-            const filter = {};
-
-            if (status) filter.status = status;
-            if (offerId) filter.offerId = offerId;
-            if (campaignId) filter.campaignId = campaignId;
-
-            if (search) {
-                filter.$or = [
-                    { clickId: { $regex: search, $options: 'i' } },
-                    { payoutAccount: { $regex: search, $options: 'i' } }
-                ];
-            }
-
-            if (startDate || endDate) {
-                filter.createdAt = {};
-                if (startDate) filter.createdAt.$gte = new Date(startDate);
-                if (endDate) {
-                    const end = new Date(endDate);
-                    end.setHours(23, 59, 59, 999);
-                    filter.createdAt.$lte = end;
-                }
-            }
-
-            const skip = (Number(page) - 1) * Number(limit);
-
-            const [conversions, total] = await Promise.all([
-                Tracking.find(filter)
-                    .populate('offerId', 'offerName')
-                    .populate('campaignId', 'name category')
-                    .populate('userId', 'name email phone')
-                    .sort({ createdAt: -1 })
-                    .skip(skip)
-                    .limit(Number(limit))
-                    .lean(),
-                Tracking.countDocuments(filter)
-            ]);
-
-            return {
-                conversions,
-                pagination: {
-                    total,
-                    page: Number(page),
-                    limit: Number(limit),
-                    totalPages: Math.ceil(total / Number(limit))
-                }
-            };
-        } catch (error) {
-            logger.error(`conversion.service.js << getConversions() << ${error.message}`);
-            throw error;
-        }
+    getConversions = async params => {
+        const query = reportQuery(params);
+        const { rows, total } = await conversionRepo.list(query);
+        return { conversions: rows, pagination: pagination(query.page, query.limit, total) };
     };
 
     getConversionById = async (id) => {

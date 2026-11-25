@@ -12,6 +12,7 @@ const PostbackLogSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 PostbackLogSchema.index({ offerId:  1, createdAt: -1 });
+PostbackLogSchema.index({ createdAt: -1, _id: -1 });
 PostbackLogSchema.index({ status:   1, createdAt: -1 });
 PostbackLogSchema.index({ clickId:  1, createdAt: -1 });
 

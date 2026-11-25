@@ -1,8 +1,13 @@
 import clickService from './click.service.js';
-import { setSuccess } from '../../core/responseHelper.js';
+import { setSuccess, setBadRequest } from '../../core/responseHelper.js';
 import logger from '../../core/logger.js';
 
 class ClickController {
+    async listClicks(req, res) {
+        try { return setSuccess(res, await clickService.listClicks(req.query)); }
+        catch (error) { return setBadRequest(res, error.message); }
+    }
+
     async createClick(req, res) {
         try {
             const offerId = req.params?.offerId || req.body?.offerId;

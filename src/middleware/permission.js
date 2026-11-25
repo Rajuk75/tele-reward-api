@@ -30,6 +30,7 @@ const ROLES = {
 
         // ── Conversion / approval ─────────────────────────────────────────────
         'GET_CAMPAIGN_CONVERSIONS',
+        'GET_TRACKING_CLICKS',
         'MANAGE_CONVERSIONS',
         'UPDATE_CONVERSION_STATUS',
         'APPROVE_CONVERSION',

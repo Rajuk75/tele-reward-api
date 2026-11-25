@@ -61,7 +61,8 @@ class PostbackRepository {
         try {
             return await PostbackLog.find(filter)
                 .populate('offerId', 'offerName category')
-                .sort({ createdAt: -1 })
+                .populate('userId', 'name email phone')
+                .sort({ createdAt: -1, _id: -1 })
                 .skip(skip)
                 .limit(limit)
                 .lean();
@@ -69,6 +70,16 @@ class PostbackRepository {
             logger.error(`postback.repo.js << findLogs() >>>>>> [ERROR] ${error.message}`);
             throw error;
         }
+    }
+
+    overview(start, end) {
+        return PostbackLog.aggregate([
+            { $match: { createdAt: { $gte: start, $lt: end } } },
+            { $group: {
+                _id: { day: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, status: '$status' },
+                count: { $sum: 1 },
+            } },
+        ]);
     }
 
     async countLogs(filter = {}) {

@@ -43,7 +43,8 @@ class PayoutRepository {
 
     async findPayouts(filter = {}, { skip = 0, limit = 20, sort = { createdAt: -1 } } = {}) {
         try {
-            return await Payout.find(filter)
+            return await Payout.find(filter).select('-payoutResponse')
+                .populate('userId', 'name email phone')
                 .populate('offerId', 'offerName category')
                 .populate('createdBy', 'name email')
                 .populate('updatedBy', 'name email')
@@ -55,6 +56,10 @@ class PayoutRepository {
             logger.error(`payout.repo.js << findPayouts() >>>>>> [ERROR] ${error.message}`);
             throw error;
         }
+    }
+
+    async summarize(filter) {
+        return Payout.aggregate([{ $match: filter }, { $group: { _id: '$status', count: { $sum: 1 }, amountPaise: { $sum: '$amount' } } }]);
     }
 
     async countPayouts(filter = {}) {

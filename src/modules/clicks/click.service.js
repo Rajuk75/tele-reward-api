@@ -1,3 +1,4 @@
+import { reportQuery, pagination } from '../../core/reportQuery.js';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
@@ -53,6 +54,12 @@ function resolveSpinBonus(rawBonus, offer) {
 }
 
 class ClickService {
+    async listClicks(params) {
+        const query = reportQuery(params);
+        const { rows, summary } = await clickRepo.listClicks(query);
+        return { clicks: rows, summary, pagination: pagination(query.page, query.limit, summary.total) };
+    }
+
 
     /**
      * Unified Click Handler for both Direct and Referral Clicks
