@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+import { isIP } from 'node:net';
 import campaignRepo from './campaign.repo.js';
 import Campaign from './campaign.model.js';
 import CampaignEvent from './campaignEvent.model.js';
@@ -113,16 +115,24 @@ class CampaignService {
     async updateCampaign(id, data) {
         try {
             const { campaign: fields, events } = data;
-            const campaign = await Campaign.findOne({ _id: id, isDeleted: false });
-            if (!campaign) throw new Error('Campaign not found');
-
-            if (fields) {
-                campaign.set(fields);
-            }
-            if (Array.isArray(events)) {
-                await this._syncEvents(campaign._id, events);
-            }
-            await campaign.save();
+            await mongoose.connection.transaction(async session => {
+                const campaign = await Campaign.findOne({ _id: id, isDeleted: false }).session(session);
+                if (!campaign) throw new Error('Campaign not found');
+                if (fields) {
+                    campaign.set(fields);
+                    if (campaign.isModified('ipWhitelist') && campaign.ipWhitelistEnabled && campaign.ipWhitelist.some(ip => !isIP(ip))) {
+                        throw new Error('Enter valid IPv4 or IPv6 addresses in the whitelist');
+                    }
+                }
+                if (events !== undefined) {
+                    if (!Array.isArray(events) || events.length < 1 || events.length > 6) {
+                        throw new Error('A campaign must have between one and six events');
+                    }
+                    await this._syncEvents(campaign._id, events, session);
+                    campaign.updatedAt = new Date();
+                }
+                await campaign.save({ session });
+            });
 
             return await campaignRepo.findCampaignById(id);
         } catch (error) {
@@ -141,21 +151,22 @@ class CampaignService {
         }
     }
 
-    async _syncEvents(campaignId, events) {
+    async _syncEvents(campaignId, events, session) {
         const keys = events.map(e => (e.eventKey || e.name || '').trim().toLowerCase());
         if (keys.includes('') || new Set(keys).size !== keys.length) {
             throw new Error('Each milestone needs a distinct event key');
         }
 
         const retained = events.filter(e => e._id).map(e => String(e._id));
+        if (new Set(retained).size !== retained.length) throw new Error('Select each milestone only once');
         await CampaignEvent.updateMany(
             { campaignId, isDeleted: false, _id: { $nin: retained } },
-            { $set: { isDeleted: true } }
+            { $set: { isDeleted: true } }, { session }
         );
 
         for (const [index, e] of events.entries()) {
             const doc = e._id
-                ? await CampaignEvent.findOne({ campaignId, isDeleted: false, _id: e._id })
+                ? await CampaignEvent.findOne({ campaignId, isDeleted: false, _id: e._id }).session(session)
                 : new CampaignEvent();
 
             if (!doc) throw new Error('Unknown campaign milestone');
@@ -168,7 +179,7 @@ class CampaignService {
                 order: e.order ?? (index + 1)
             });
 
-            await doc.save();
+            await doc.save({ session });
         }
     }
 }
