@@ -9,7 +9,7 @@ const TaskPaymentForm = {
 
     // ── STYLES REGISTRY ──
     BUTTON_STYLES: {
-        active: 'py-2.5 px-3 text-xs font-black rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 flex items-center justify-center gap-2 transition cursor-pointer',
+        active: 'py-2.5 px-3 text-xs font-semibold rounded-xl border border-violet-300 bg-violet-50 text-violet-900 flex items-center justify-center gap-2 transition cursor-pointer',
         inactive: 'py-2.5 px-3 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-2 transition cursor-pointer'
     },
 
@@ -24,11 +24,11 @@ const TaskPaymentForm = {
             renderForm() {
                 return `
                     <div class="space-y-1.5">
-                        <label class="block text-[11px] font-bold text-slate-700">UPI ID</label>
+                        <label for="upiInput" class="payout-label">UPI ID</label>
                         <div class="relative">
-                            <input type="text" id="upiInput" placeholder="e.g. 9876543210@paytm or yourname@oksbi"
+                            <input type="text" id="upiInput" autocapitalize="none" spellcheck="false" placeholder="yourname@oksbi"
                                 oninput="TaskPaymentForm.handleUpiInput(this.value)"
-                                class="w-full text-xs font-bold px-3.5 py-3 pr-10 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition placeholder:text-slate-400 placeholder:font-normal">
+                                class="w-full text-base font-medium px-3.5 py-3 pr-10 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition placeholder:text-slate-400 placeholder:font-normal">
                             <div id="upiStatusIcon" class="absolute right-3.5 top-3.5 text-slate-400 text-xs flex items-center pointer-events-none">
                                 <i class="fa-solid fa-at"></i>
                             </div>
@@ -72,17 +72,17 @@ const TaskPaymentForm = {
                     <div class="space-y-3">
                         <!-- 1. IFSC Code Verification First -->
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Bank IFSC Code</label>
+                            <label for="bankIfscInput" class="payout-label">Bank IFSC Code</label>
                             <div class="relative flex items-center">
                                 <input type="text" id="bankIfscInput" maxlength="11" placeholder="e.g. SBIN0001234"
                                     oninput="TaskPaymentForm.handleIfscInput(this.value)"
-                                    class="w-full text-xs font-bold px-3.5 py-2.5 pr-20 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 uppercase transition placeholder:text-slate-400 placeholder:font-normal">
+                                    class="w-full text-base font-medium px-3.5 py-2.5 pr-20 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 uppercase transition placeholder:text-slate-400 placeholder:font-normal">
                                 <button type="button" id="btnVerifyIfsc" onclick="TaskPaymentForm.triggerIfscVerification()"
-                                    class="absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition cursor-pointer">
+                                    class="absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition cursor-pointer">
                                     Verify
                                 </button>
                             </div>
-                            <p id="ifscErrorText" class="hidden text-[10px] text-red-500 font-semibold mt-1"></p>
+                            <p id="ifscErrorText" role="status" class="hidden text-xs text-red-700 font-semibold mt-1"></p>
                         </div>
 
                         <!-- Verified Bank Details Banner (Hidden until verified) -->
@@ -91,23 +91,23 @@ const TaskPaymentForm = {
                             <i class="fa-solid fa-circle-check text-emerald-600 text-sm mt-0.5 shrink-0"></i>
                             <div class="min-w-0">
                                 <div id="ifscBankNameDisplay" class="text-xs font-bold text-emerald-900 leading-tight"></div>
-                                <div id="ifscBranchDisplay" class="text-[10px] text-emerald-700 font-medium"></div>
+                                <div id="ifscBranchDisplay" class="text-xs text-emerald-700 font-medium"></div>
                             </div>
                         </div>
 
                         <!-- 2. Remaining Bank Details (Revealed ONLY after IFSC is verified) -->
                         <div id="bankDetailsRemaining" class="hidden space-y-2.5 pt-1 border-t border-slate-100">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Bank Account Number</label>
+                                <label for="bankAccInput" class="payout-label">Bank Account Number</label>
                                 <input type="text" id="bankAccInput" inputmode="numeric" minlength="9" maxlength="18"
                                     placeholder="Enter 9-18 digit account number"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                                    class="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition placeholder:text-slate-400 placeholder:font-normal">
+                                    class="w-full text-base font-medium px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 transition placeholder:text-slate-400 placeholder:font-normal">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Account Holder Name (Optional)</label>
+                                <label for="bankNameInput" class="payout-label">Account Holder Name (Optional)</label>
                                 <input type="text" id="bankNameInput" placeholder="Name on bank passbook"
-                                    class="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition placeholder:text-slate-400 placeholder:font-normal">
+                                    class="w-full text-base font-medium px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 transition placeholder:text-slate-400 placeholder:font-normal">
                             </div>
                         </div>
                     </div>
@@ -183,7 +183,7 @@ const TaskPaymentForm = {
             const style = isSelected ? this.BUTTON_STYLES.active : this.BUTTON_STYLES.inactive;
             return `
                 <button type="button" id="${config.buttonId}" onclick="TaskPaymentForm.selectPaymentMethod('${key}')"
-                    class="${style}">
+                    aria-pressed="${isSelected}" class="${style}">
                     <i class="${config.icon}"></i> ${config.label}
                 </button>
             `;
@@ -218,6 +218,7 @@ const TaskPaymentForm = {
             const sectionElement = document.getElementById(config.sectionId);
 
             if (buttonElement) {
+                buttonElement.setAttribute('aria-pressed', String(isSelected));
                 buttonElement.className = isSelected
                     ? this.BUTTON_STYLES.active
                     : this.BUTTON_STYLES.inactive;
@@ -274,6 +275,7 @@ const TaskPaymentForm = {
 
         try {
             const upiData = await TaskAPI.verifyUpiId(vpa);
+            if (document.getElementById('upiInput').value.trim() !== vpa) return;
             this.isUpiVerified = true;
             this.verifiedUpiInfo = upiData;
             this.upiValidationError = null;
@@ -281,6 +283,7 @@ const TaskPaymentForm = {
             // Tick mark
             if (icon) icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
         } catch (err) {
+            if (document.getElementById('upiInput').value.trim() !== vpa) return;
             this.isUpiVerified = false;
             this.verifiedUpiInfo = null;
             this.upiValidationError = err.message || 'Invalid UPI ID format. Please check and try again.';
@@ -330,7 +333,7 @@ const TaskPaymentForm = {
         if (verifyBtn) {
             verifyBtn.disabled = false;
             verifyBtn.textContent = 'Verify';
-            verifyBtn.className = 'absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition cursor-pointer';
+            verifyBtn.className = 'absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition cursor-pointer';
         }
     },
 
@@ -372,6 +375,7 @@ const TaskPaymentForm = {
 
         try {
             const bankData = await TaskAPI.verifyIfscCode(code);
+            if (ifscInput.value.trim().toUpperCase() !== code) return;
             this.isIfscVerified = true;
             this.verifiedBankInfo = bankData;
 
@@ -390,6 +394,7 @@ const TaskPaymentForm = {
                 verifyBtn.className = 'absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 rounded-lg transition';
             }
         } catch (err) {
+            if (ifscInput.value.trim().toUpperCase() !== code) return;
             this.isIfscVerified = false;
             this.verifiedBankInfo = null;
 
@@ -403,7 +408,7 @@ const TaskPaymentForm = {
             if (verifyBtn) {
                 verifyBtn.disabled = false;
                 verifyBtn.textContent = 'Verify';
-                verifyBtn.className = 'absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition cursor-pointer';
+                verifyBtn.className = 'absolute right-1.5 px-3 py-1.5 text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition cursor-pointer';
             }
         }
     },
@@ -454,7 +459,10 @@ const TaskPaymentForm = {
     restoreLastUsedAccount() {
         const lastSaved = localStorage.getItem('last_payout_account');
         const upiInput = document.getElementById('upiInput');
-        if (lastSaved && upiInput) {
+        if (/^[0-9]{9,18}$/.test(lastSaved || '')) {
+            this.selectPaymentMethod('BANK');
+            document.getElementById('bankAccInput').value = lastSaved;
+        } else if (lastSaved && upiInput) {
             upiInput.value = lastSaved;
             this.handleUpiInput(lastSaved);
         }

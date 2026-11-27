@@ -104,6 +104,8 @@ const TaskUI = {
             spinTopBanner.style.cursor = 'pointer';
         }
         const strip = document.getElementById('spinBonusStrip');
+        strip.classList.remove('is-complete');
+        strip.disabled = false;
         strip.hidden = true;
         strip.classList.add('hidden');
 
@@ -177,17 +179,9 @@ const TaskUI = {
         const strip = document.getElementById('spinBonusStrip');
         if (strip) {
             strip.hidden = false;
-            strip.style.background = '#ecfdf5';
-            strip.style.borderColor = '#a7f3d0';
-            strip.style.color = '#065f46';
-            strip.style.cursor = 'default';
-            const chevron = strip.querySelector('.fa-chevron-right');
-            if (chevron) chevron.style.display = 'none';
-            const icon = strip.querySelector('.bonus-icon');
-            if (icon) {
-                icon.className = 'fa-solid fa-circle-check bonus-icon';
-                icon.style.color = '#059669';
-            }
+            strip.classList.remove('hidden');
+            strip.classList.add('is-complete');
+            strip.disabled = true;
             const textEl = document.getElementById('spinBonusText');
             if (textEl) {
                 textEl.textContent = bonus > 0

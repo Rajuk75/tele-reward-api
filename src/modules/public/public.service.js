@@ -19,7 +19,7 @@ class PublicService {
                 ]
             })
             .populate('offerId', 'offerName totalPayout firstEventPayout category')
-            .populate('campaignId', 'name category')
+            .populate('campaignId', 'name category imageUrl')
             .sort({ createdAt: -1 })
             .limit(30)
             .lean();
@@ -72,6 +72,7 @@ class PublicService {
                     maxUserEarningPaise: rec.maxUserEarningPaise,
                     earnedUserAmountPaise: rec.earnedUserAmountPaise,
                     milestones: rec.milestones?.map(({ eventKey, eventName, status, userSharePaise }) => ({ eventKey, eventName, status, userSharePaise })),
+                    icon: rec.campaignId?.imageUrl || null,
                     offerName: rec.campaignId?.name || rec.offerId?.offerName || 'Special Task',
                     category: rec.campaignId?.category || rec.offerId?.category || 'App Task',
                     payoutAccount: rec.payoutAccount,

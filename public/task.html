@@ -22,53 +22,87 @@
         .task-shell { padding: clamp(18px, 4vw, 48px) 16px 32px; }
         .offer-layout { display: grid; gap: 16px; align-items: start; }
         .offer-layout > * { min-width: 0; }
-        .ticket, .payout-card { border: 1px solid #e2e8f0; border-radius: 22px; overflow: hidden; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); }
+        .ticket, .payout-card, .journey {
+            background: white;
+            border: 1px solid #dce1e8;
+            border-radius: 12px;
+        }
+        .ticket { overflow: hidden; --inset: clamp(14px, 3vw, 20px); }
         .ticket-cover { width: 100%; max-height: 150px; object-fit: cover; }
-        .ticket-heading { padding: 20px 20px 16px; }
-        .payout-card { padding: clamp(18px, 3vw, 28px); }
-        .identity { display: flex; align-items: center; gap: 14px; }
-        .monogram { width: 58px; height: 58px; flex: none; display: grid; place-items: center; position: relative;
-            border-radius: 16px; background: #fef08a; color: #0f172a; font-weight: 800; font-size: 24px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+        .ticket-heading, .payout-card { padding: clamp(16px, 3vw, 20px); }
+        .identity { display: flex; align-items: flex-start; gap: 12px; }
+        .monogram {
+            position: relative; flex: none; display: grid; place-items: center;
+            width: 48px; height: 48px; border-radius: 10px; overflow: hidden;
+            background: #f2f0fa; color: #574391; font-size: 21px; font-weight: 700;
+        }
         .monogram img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-        .category { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #64748b; }
-        .offer-title { font-size: clamp(20px, 3vw, 26px); font-weight: 800; line-height: 1.2; letter-spacing: -.03em; color: #0f172a; overflow-wrap: anywhere; }
-        .offer-copy { margin-top: 4px; font-size: 13px; line-height: 1.45; color: #64748b; overflow-wrap: anywhere; }
-        .reward { position: relative; isolation: isolate; overflow: hidden; margin: 0 20px 12px; padding: 18px 20px; border-radius: 16px;
-            background: linear-gradient(135deg, #fef9e7 0%, #fde68a 100%); color: #0f172a;
-            display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .reward-label { color: #78350f; font-size: 12px; font-weight: 600; }
-        .amount { margin-top: 4px; font-size: clamp(32px, 5vw, 42px); letter-spacing: -.04em; line-height: 1.1; font-weight: 800; color: #0f172a; overflow-wrap: anywhere; }
-        .reward-coins { flex: none; width: 78px; height: 64px; }
-        .bonus { margin: 0 20px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            padding: 12px 16px; border-radius: 14px; background: #f5f3ff; border: 1px solid #ede9fe;
-            font-size: 13px; font-weight: 700; color: #0f172a; }
-        .bonus-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-        .bonus-icon { color: #ef4444; font-size: 15px; flex: none; }
-        .offer-details { padding: 0 20px 8px; }
-        .offer-details details + details { border-top: 1px solid #f1f5f9; }
-        .offer-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; font-size: 14px; font-weight: 700; color: #0f172a; list-style: none; }
+        .category { color: #665583; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+        .offer-title { margin-top: 2px; font-size: clamp(20px, 3vw, 24px); line-height: 1.3; font-weight: 700; letter-spacing: -.025em; }
+        .offer-copy { margin-top: 5px; color: #475569; font-size: 14px; line-height: 1.55; }
+        .identity, .reward, .bonus, .offer-details { overflow-wrap: anywhere; }
+        .reward, .bonus {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            margin: 0 var(--inset) 10px; padding: 11px 14px; border-radius: 10px;
+        }
+        .reward { background: #fff7db; }
+        .reward-label { color: #6d5627; font-size: 12px; font-weight: 600; }
+        .amount { margin-top: 2px; font-size: clamp(24px, 4vw, 28px); font-weight: 700; line-height: 1.2; }
+        .outline-icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+        .reward-icon { width: 28px; height: 28px; color: #947225; }
+        .bonus { width: calc(100% - 2 * var(--inset)); min-height: 44px; text-align: left; background: #f4f1fa; color: #584482; font-size: 13px; font-weight: 600; }
+        .bonus-left, .summary-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .bonus .check-mark, .bonus.is-complete .gift-mark, .bonus.is-complete .bonus-chevron { display: none; }
+        .bonus.is-complete .check-mark { display: block; }
+        .offer-details { padding: 0 var(--inset) 4px; }
+        .offer-details details + details { border-top: 1px solid #e5e8ed; }
+        .offer-details summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; padding: 10px 0; cursor: pointer; font-size: 14px; font-weight: 600; list-style: none; }
         .offer-details summary::-webkit-details-marker { display: none; }
-        .summary-left { display: flex; align-items: center; gap: 10px; }
-        .summary-badge { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; flex: none; }
-        .summary-badge.steps { background: #f3e8ff; color: #7c3aed; }
-        .summary-badge.terms { background: #f1f5f9; color: #334155; }
-        .summary-chevron { color: #475569; font-size: 12px; transition: transform .2s ease; }
+        .summary-left svg, .summary-chevron { color: #596578; }
+        .summary-chevron, .bonus-chevron { width: 15px; height: 15px; }
         .offer-details details[open] .summary-chevron { transform: rotate(180deg); }
-        .offer-details ol, .offer-details p { margin-bottom: 16px; padding-left: 38px; font-size: 13px; line-height: 1.6; color: #475569; overflow-wrap: anywhere; }
-        .offer-details ol { list-style: decimal; padding-left: 54px; }
-        .payout-card h2 { font-size: 22px; line-height: 1.2; letter-spacing: -.03em; font-weight: 800; color: #0f172a; }
+        .offer-details ol, .offer-details p { margin: 0 0 12px 28px; font-size: 14px; line-height: 1.6; color: #475569; }
+        .offer-details ol { list-style: decimal; padding-left: 1.2em; }
+        .payout-card h2 { font-size: 20px; line-height: 1.3; font-weight: 700; }
+        .journey { padding: 14px; }
+        .journey h2, #moreWaysSection h2 { font-size: 15px; font-weight: 700; }
+        .journey ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(52px, 100%), 1fr)); row-gap: 10px; margin: 12px 0 8px; }
+        .journey li { position: relative; text-align: center; font-size: 11px; line-height: 1.45; color: #525e70; overflow-wrap: anywhere; padding-inline: 2px; }
+        .journey li::before { content: ""; position: absolute; inset: 11px 0 auto; height: 1px; background: #d7dce3; }
+        .journey li:first-child::before { left: 50%; }
+        .journey li:last-child::before { right: 50%; }
+        .journey li:only-child::before { display: none; }
+        .journey-number { position: relative; display: grid; place-items: center; margin: 0 auto 4px; width: 23px; height: 23px; background: #edf0f4; border-radius: 50%; font-weight: 600; }
+        .journey [aria-current="step"] { color: #584482; font-weight: 700; }
+        .journey [aria-current="step"] .journey-number { background: #614596; color: white; }
+        .journey p { font-size: 12px; color: #596578; }
+        .earn-card { display: grid; align-content: center; justify-items: center; gap: 7px; min-height: 72px; padding: 9px 4px; background: white; border: 1px solid #dce1e8; border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; line-height: 1.4; }
+        .earn-card i { font-size: 19px; }
+        .earn-card:hover { background: #f8fafc; }
+        @media (prefers-reduced-motion: no-preference) {
+            .summary-chevron { transition: transform .16s ease; }
+            .offer-details details::details-content { interpolate-size: allow-keywords; height: 0; overflow: clip; transition: height .16s ease, content-visibility .16s allow-discrete; }
+            .offer-details details[open]::details-content { height: auto; }
+            .journey [aria-current="step"] .journey-number { animation: journey-pulse 2s ease-in-out infinite; }
+            @keyframes journey-pulse { 50% { background-color: #7457aa; } }
+        }
         #payoutMethodTabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 20px 0 16px; }
         #payoutMethodTabs button { min-height: 44px; }
-        #payoutFormsContainer input { font-size: 16px; }
+        #payoutFormsContainer input { min-height: 46px; font-size: 16px; border-radius: 10px; }
+        .payout-label { display: block; margin-bottom: 6px; color: #334155; font-size: 13px; font-weight: 600; }
+        #ifscVerifiedCard { overflow-wrap: anywhere; }
+        #btnVerifyIfsc { min-width: 54px; min-height: 34px; font-size: 12px; }
+        #payoutMethodTabs button { font-size: 13px; font-weight: 600; }
         #claimBtn, #openPayout { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-top: 18px;
-            padding: 14px 20px; background: #0f172a; color: #ffffff; font-size: 15px; font-weight: 700;
-            border-radius: 14px; box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.35); transition: background-color .15s ease; }
-        #claimBtn:hover, #openPayout:hover { background: #000000; }
+            padding: 14px 20px; background: #0f172a; color: #ffffff; font-size: 15px; font-weight: 500;
+            border-radius: 10px; transition: background-color .15s ease; }
+        #claimBtn:hover, #openPayout:hover { background: #25334b; }
+        #claimBtn:active, #openPayout:active { background: #101a2b; }
         #openPayout { margin: 0; }
         .payout-column { display: grid; gap: 16px; }
         #payoutSheet { position: fixed; inset: auto 0 0; margin: 0; width: 100%; max-width: none;
             max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain;
-            border: 0; border-radius: 24px 24px 0 0; padding: 0 0 env(safe-area-inset-bottom); background: white; color: inherit; }
+            border: 0; border-radius: 12px 12px 0 0; padding: 0 0 env(safe-area-inset-bottom); background: white; color: inherit; }
         #payoutSheet:not([open]) { display: none; }
         #payoutSheet::backdrop { background: rgb(11 31 23 / 55%); }
         #payoutSheet .payout-card { border: 0; }
@@ -84,17 +118,10 @@
         @media (max-width: 767.98px) { #payoutHome { display: none; } }
         @media (min-width: 768px) { #openPayout { display: none; } }
         #claimBtn:disabled { opacity: .7; cursor: wait; }
-        :focus-visible { outline: 3px solid #258869; outline-offset: 3px; }
+        :focus-visible { outline: 3px solid #694ea0; outline-offset: 3px; }
         @media (min-width: 768px) { .offer-layout { grid-template-columns: 1.15fr 1fr; gap: 24px; } }
-        .skel {
-            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-            background-size: 200% 100%;
-            animation: skel-shimmer 1.35s ease-in-out infinite;
-        }
-        @keyframes skel-shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
+        .skel { background: #edf0f4; max-width: 100%; }
+        #loadingState .flex-1 { min-width: 0; }
     </style>
 </head>
 
@@ -173,65 +200,33 @@
                         <p class="reward-label">Task reward &middot; up to</p>
                         <p id="offerReward" class="amount"></p>
                     </div>
-                    <svg class="reward-coins" viewBox="0 0 96 78" fill="none" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="coinGold" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#fde047"/>
-                                <stop offset="55%" stop-color="#facc15"/>
-                                <stop offset="100%" stop-color="#d97706"/>
-                            </linearGradient>
-                            <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#f59e0b"/>
-                                <stop offset="100%" stop-color="#b45309"/>
-                            </linearGradient>
-                        </defs>
-                        <!-- Sparkle -->
-                        <path d="M16 18l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" fill="#f59e0b" opacity="0.85"/>
-                        <!-- Back stack -->
-                        <ellipse cx="62" cy="54" rx="18" ry="7" fill="url(#coinRim)"/>
-                        <ellipse cx="62" cy="50" rx="18" ry="7" fill="url(#coinGold)"/>
-                        <ellipse cx="62" cy="43" rx="18" ry="7" fill="url(#coinRim)"/>
-                        <ellipse cx="62" cy="39" rx="18" ry="7" fill="url(#coinGold)"/>
-                        <ellipse cx="62" cy="32" rx="18" ry="7" fill="url(#coinRim)"/>
-                        <ellipse cx="62" cy="28" rx="18" ry="7" fill="url(#coinGold)"/>
-                        <!-- Front stack -->
-                        <ellipse cx="38" cy="60" rx="20" ry="7.5" fill="url(#coinRim)"/>
-                        <ellipse cx="38" cy="56" rx="20" ry="7.5" fill="url(#coinGold)"/>
-                        <ellipse cx="38" cy="49" rx="20" ry="7.5" fill="url(#coinRim)"/>
-                        <ellipse cx="38" cy="45" rx="20" ry="7.5" fill="url(#coinGold)"/>
-                        <ellipse cx="38" cy="38" rx="20" ry="7.5" fill="url(#coinRim)"/>
-                        <ellipse cx="38" cy="34" rx="20" ry="7.5" fill="url(#coinGold)"/>
-                        <!-- Front leaning rupee coin -->
-                        <circle cx="67" cy="52" r="18" fill="url(#coinRim)"/>
-                        <circle cx="66" cy="51" r="17" fill="url(#coinGold)" stroke="#fef08a" stroke-width="1.5"/>
-                        <text x="66" y="57" text-anchor="middle" font-size="18" font-weight="800" fill="#92400e" font-family="sans-serif">&#8377;</text>
-                    </svg>
+                    <svg class="outline-icon reward-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 8h7m-7 3h7M10 8c4 0 4 6-1 6l5 4"/></svg>
                 </div>
-                <div id="spinBonusStrip" class="bonus" hidden>
-                    <div class="bonus-left">
-                        <i class="fa-solid fa-gift bonus-icon" aria-hidden="true"></i>
+                <button type="button" id="spinBonusStrip" class="bonus" hidden>
+                    <span class="bonus-left">
+                        <svg class="outline-icon " viewBox="0 0 24 24" aria-hidden="true"><g class="gift-mark"><path d="M3 8h18v4H3zM5 12v8h14v-8M12 8v12"/><path d="M12 8H9a3 3 0 1 1 3-3v3Zm0 0h3a3 3 0 1 0-3-3v3Z"/></g><path class="check-mark" d="m5 12 4 4L19 6"/></svg>
                         <span id="spinBonusText"></span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-slate-500 text-xs" aria-hidden="true"></i>
-                </div>
+                    </span>
+                    <svg class="outline-icon bonus-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+                </button>
                 <div class="offer-details">
                     <details id="stepsSection" hidden>
                         <summary>
                             <span class="summary-left">
-                                <span class="summary-badge steps" aria-hidden="true"><i class="fa-solid fa-list-ul"></i></span>
+                                <svg class="outline-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 1 1 2-3m3 2h12M3 12l1 1 2-3m3 2h12M3 18l1 1 2-3m3 2h12"/></svg>
                                 <span>How to earn this reward</span>
                             </span>
-                            <i class="fa-solid fa-chevron-down summary-chevron" aria-hidden="true"></i>
+                            <svg class="outline-icon summary-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>
                         </summary>
                         <ol id="offerStepsContainer"></ol>
                     </details>
                     <details id="termsSection" hidden>
                         <summary>
                             <span class="summary-left">
-                                <span class="summary-badge terms" aria-hidden="true"><i class="fa-regular fa-file-lines"></i></span>
+                                <svg class="outline-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/></svg>
                                 <span>Offer terms</span>
                             </span>
-                            <i class="fa-solid fa-chevron-down summary-chevron" aria-hidden="true"></i>
+                            <svg class="outline-icon summary-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>
                         </summary>
                         <p id="offerTerms" class="whitespace-pre-line"></p>
                     </details>
@@ -254,10 +249,10 @@
                     </section>
                 </div>
                 <section id="moreWaysSection"></section>
-                <section aria-labelledby="aboutHeading" class="border-t border-[#d5dfd8] px-1.5 pt-4">
+                <section aria-labelledby="aboutHeading" class="border-t border-slate-200 pt-4">
                     <h2 id="aboutHeading" class="text-sm font-bold">More about</h2>
-                    <p class="mt-1 text-sm leading-relaxed text-[#506357]">You can earn rewards by completing offer tasks. Choose UPI or a bank account to receive your payout after verification.</p>
-                    <a href="/status" class="mt-2 inline-flex py-1 text-sm font-semibold text-[#145a40] underline underline-offset-4">Track your earnings</a>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-600">You can earn rewards by completing offer tasks. Choose UPI or a bank account to receive your payout after verification.</p>
+                    <a href="/status" class="mt-2 inline-flex py-1 text-sm font-semibold text-[#584482] underline underline-offset-4">Track your earnings</a>
                 </section>
             </div>
         </div>

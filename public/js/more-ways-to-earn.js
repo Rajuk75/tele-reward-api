@@ -11,37 +11,28 @@ function renderMoreWaysToEarn(options = {}) {
 
     container.innerHTML = `
         <div class="bg-transparent py-1">
-            <h2 class="mb-2.5 flex items-center gap-1.5 text-sm font-extrabold text-slate-900">
-                <span aria-hidden="true">🔥</span>
-                <span>More ways to earn</span>
-            </h2>
+            <h2 class="mb-2.5">More ways to earn</h2>
             <div class="grid ${gridCols} gap-2">
                 <!-- 1. Join Telegram -->
                 <a href="https://t.me/CashExpressOfficial" target="_blank" rel="noopener noreferrer"
-                    class="relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-blue-100 bg-blue-50/80 px-2 py-3 text-center transition hover:bg-blue-50">
-                    <span class="grid size-9 shrink-0 place-items-center rounded-full bg-sky-500 text-white text-lg shadow-xs">
-                        <i class="fa-brands fa-telegram" aria-hidden="true"></i>
-                    </span>
-                    <p class="text-[11px] font-bold text-slate-900 leading-tight">Join Telegram</p>
+                    class="earn-card">
+                    <i class="fa-brands fa-telegram text-sky-600" aria-hidden="true"></i>
+                    <span>Join Telegram</span>
                 </a>
 
                 ${showSpin ? `<!-- 2. Daily Spin -->
                 <button type="button" id="moreWaysSpinBtn"
-                    class="relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-rose-100 bg-rose-50/70 px-2 py-3 text-center transition hover:bg-rose-50 cursor-pointer">
-                    <span class="grid size-9 shrink-0 place-items-center text-rose-500 text-2xl">
-                        <i class="fa-solid fa-gift" aria-hidden="true"></i>
-                    </span>
-                    <p class="text-[11px] font-bold text-slate-900 leading-tight">Daily Spin</p>
+                    class="earn-card">
+                    <i class="fa-solid fa-gift text-rose-500" aria-hidden="true"></i>
+                    <span>Daily Spin</span>
                 </button>` : ''}
 
-                <!-- 3. Complete Tasks -->
-                <button type="button" id="moreWaysTasksBtn"
-                    class="relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center transition hover:bg-emerald-50 cursor-pointer">
-                    <span class="grid size-9 shrink-0 place-items-center text-emerald-500 text-2xl">
-                        <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
-                    </span>
-                    <p class="text-[11px] font-bold text-slate-900 leading-tight">Complete Tasks</p>
-                </button>
+                <!-- 3. Track Task -->
+                <a href="/status"
+                    class="earn-card">
+                    <i class="fa-solid fa-list-check text-emerald-600" aria-hidden="true"></i>
+                    <span>Track Task</span>
+                </a>
             </div>
         </div>
     `;
@@ -62,15 +53,6 @@ function renderMoreWaysToEarn(options = {}) {
         }
     });
 
-    document.getElementById('moreWaysTasksBtn')?.addEventListener('click', () => {
-        const steps = document.getElementById('stepsSection');
-        if (steps && !steps.hidden) {
-            steps.open = true;
-            steps.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            window.location.href = '/status';
-        }
-    });
 }
 
 window.renderMoreWaysToEarn = renderMoreWaysToEarn;
