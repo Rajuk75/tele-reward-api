@@ -12,6 +12,9 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(160deg, #f3e8ff 0%, #f8fafc 48%, #e0f2fe 100%);
+            background-attachment: fixed;
+            color: #0f172a;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -21,58 +24,62 @@
     </style>
 </head>
 
-<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen pb-8 md:pb-12 select-none">
+<body class="min-h-screen flex items-center justify-center p-4 antialiased select-none">
 
-    <header id="appHeader" class="bg-black border-b border-neutral-800 sticky top-0 z-30 shadow-sm"></header>
+    <main class="w-full max-w-md">
 
-    <main class="max-w-md mx-auto px-4 pt-3.5 space-y-3.5">
+        <div
+            class="bg-white rounded-[22px] p-6 border border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)] text-center">
 
-        <div class="bg-gradient-to-b from-emerald-100/60 via-emerald-50/20 to-white rounded-3xl p-5 border border-emerald-200/70 shadow-sm relative overflow-hidden text-center">
-            
-            <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 mx-auto flex items-center justify-center text-2xl mb-3 border border-amber-200/80 shadow-sm">
+            <div
+                class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 mx-auto flex items-center justify-center text-2xl mb-3.5 border border-amber-200/80 shadow-sm">
                 <i class="fa-solid fa-link-slash"></i>
             </div>
 
-            <span class="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100/90 text-amber-800 border border-amber-200/70 inline-block mb-1.5">
-                DIRECT LINK REQUIRED
+            <span
+                class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100/90 text-amber-800 border border-amber-200/70 mb-2.5">
+                Direct Link Required
             </span>
 
-            <h1 class="text-lg font-black text-slate-900 tracking-tight leading-snug">
-                Link Expired or Missing
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                Link Missing or Expired
             </h1>
 
-            <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed font-medium">
-                Reward tasks specific invite links ke through open hote hain. Please Telegram se link dobara open karein.
+            <p class="text-[13px] text-slate-500 mt-1.5 max-w-xs mx-auto leading-relaxed font-medium">
+                Reward tasks can only be accessed through a valid invite link. Please reopen the latest offer link from
+                Telegram.
             </p>
 
-            <div class="mt-4 p-3.5 bg-white/90 rounded-2xl border border-slate-200/80 text-left space-y-2">
-                <div class="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-emerald-600"></i> Kaam Kaise Karega?
+            <div class="mt-5 p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-left space-y-2.5">
+                <div class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-emerald-600"></i>
+                    <span>How It Works</span>
                 </div>
-                <ul class="text-[11px] text-slate-600 space-y-1.5 font-medium pl-1">
-                    <li class="flex items-start gap-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <span>Apne <b>Telegram Bot / Channel</b> me wapas jayein.</span>
+                <ul class="text-xs text-slate-600 space-y-2 font-medium">
+                    <li class="flex items-start gap-2.5">
+                        <span
+                            class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                        <span>Go back to your <strong class="text-slate-800">Telegram or Channel</strong>.</span>
                     </li>
-                    <li class="flex items-start gap-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <span>Latest live <b>Offer Link</b> par click karein.</span>
+                    <li class="flex items-start gap-2.5">
+                        <span
+                            class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <span>Click on your <strong class="text-slate-800">Shared Link</strong> to open the task.</span>
                     </li>
-                    <li class="flex items-start gap-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <span>Apna UPI ID/Bank darj karke <b>Instant Cash</b> claim karein.</span>
+                    <li class="flex items-start gap-2.5">
+                        <span
+                            class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <span>Enter your <strong class="text-slate-800">UPI ID</strong> to claim your <strong
+                                class="text-slate-800">Instant Cash Reward</strong>.</span>
                     </li>
                 </ul>
             </div>
 
-            <div class="mt-4 flex flex-col gap-2">
-                <a href="/status" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition shadow-sm primary-glow flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+            <div class="mt-5">
+                <a href="/status"
+                    class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-2xl text-[13px] font-bold transition shadow-sm primary-glow flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     <span>Check Payout Status</span>
-                </a>
-                <a href="/refer" class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-gift text-emerald-600 text-[11px]"></i>
-                    <span>Refer & Earn ₹50</span>
                 </a>
             </div>
 
@@ -80,8 +87,6 @@
 
     </main>
 
-
-    <script src="/js/app-navbar.js?v=7"></script>
 </body>
 
 </html>

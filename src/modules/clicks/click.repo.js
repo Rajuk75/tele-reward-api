@@ -24,10 +24,26 @@ class ClickRepository {
         return { rows, summary: groups[0] ?? { total: 0, referral: 0, completed: 0 } };
     }
 
-    async findOfferForClick(offerId) {
+    async findByClickId(clickId) {
+        const query = mongoose.Types.ObjectId.isValid(clickId)
+            ? { $or: [{ clickId }, { _id: clickId }] }
+            : { clickId };
+
+        return await Tracking.findOne(query)
+            .populate('campaignId', 'name category model')
+            .populate('offerId', 'offerName category')
+            .populate('userId', 'name email phone')
+            .populate('referralId', 'referralCode referrerUserId')
+            .lean();
+    }
+
+    async findOfferForClick(offerIdOrCode) {
         try {
-            if (!offerId || !mongoose.Types.ObjectId.isValid(offerId)) return null;
-            return await Offer.findById(offerId)
+            if (!offerIdOrCode) return null;
+            const filter = mongoose.Types.ObjectId.isValid(offerIdOrCode)
+                ? { _id: offerIdOrCode }
+                : { offerId: String(offerIdOrCode).trim().toUpperCase() };
+            return await Offer.findOne(filter)
                 .populate('campaignId')
                 .populate(populateOfferEvents)
                 .lean();

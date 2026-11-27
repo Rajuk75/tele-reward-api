@@ -7,6 +7,7 @@ class TaskSpinModal {
         this.isOpen = false;
         this.isSpinning = false;
         this.hasSpun = false;
+        this.offerId = null;
         this.baseReward = 0;
         this.wonBonus = 0;
         this.onProceedCallback = null;
@@ -80,7 +81,6 @@ class TaskSpinModal {
                     <div class="mt-3">
                         <button type="button" id="btnSpinAction" class="w-full py-3 px-4 rounded-xl text-white font-bold text-xs bg-emerald-600 hover:bg-emerald-700 primary-glow flex items-center justify-center gap-2 transform active:scale-[0.98] transition cursor-pointer shadow-md">
                             <span id="btnSpinActionText">Spin Wheel (Free)</span>
-                            <i class="fa-solid fa-arrow-right text-[11px]"></i>
                         </button>
                     </div>
 
@@ -162,8 +162,9 @@ class TaskSpinModal {
     /**
      * Opens the modal
      */
-    open({ baseReward = 0, slices = null, onProceed = null }) {
+    open({ offerId = null, baseReward = 0, slices = null, onProceed = null }) {
         this.initDOM();
+        this.offerId = offerId;
         this.baseReward = Number(baseReward) || 0;
         this.onProceedCallback = onProceed;
         this.hasSpun = false;
@@ -255,9 +256,9 @@ class TaskSpinModal {
     }
 
     /**
-     * Spins the wheel
+     * Spins the wheel using server-authoritative result & HttpOnly cookie
      */
-    spin() {
+    async spin() {
         if (this.isSpinning || this.hasSpun) return;
         this.isSpinning = true;
 
@@ -274,8 +275,32 @@ class TaskSpinModal {
             actionBtnText.textContent = 'Spinning...';
         }
 
-        // Choose winning segment using weighted probability
-        const winningIndex = this.pickWeightedIndex();
+        let winningIndex = 0;
+        try {
+            const result = await TaskAPI.spinOfferWheel(this.offerId);
+            const serverIdx = Number(result.sliceIndex);
+            if (Number.isInteger(serverIdx) && serverIdx >= 0 && serverIdx < this.segments.length) {
+                winningIndex = serverIdx;
+            } else {
+                const matchIdx = this.segments.findIndex(s => s.value === Number(result.bonus));
+                winningIndex = matchIdx >= 0 ? matchIdx : 0;
+            }
+        } catch (err) {
+            this.isSpinning = false;
+            if (centerBtn) {
+                centerBtn.disabled = false;
+                centerBtn.classList.remove('opacity-50');
+            }
+            if (actionBtn && actionBtnText) {
+                actionBtn.disabled = false;
+                actionBtnText.textContent = 'Spin Wheel';
+            }
+            if (window.TaskAlerts) {
+                TaskAlerts.showErrorMessage('Spin Failed', err.message);
+            }
+            return;
+        }
+
         const winningSeg = this.segments[winningIndex];
 
         const numSegments = this.segments.length;
@@ -336,7 +361,7 @@ class TaskSpinModal {
         const actionBtnText = document.getElementById('btnSpinActionText');
         if (actionBtn && actionBtnText) {
             actionBtn.disabled = false;
-            actionBtnText.textContent = `Claim ₹${finalTotal} & Start Task`;
+            actionBtnText.textContent = `Continue to Claim (+₹${bonusAmount})`;
             actionBtn.className = 'w-full py-3.5 px-4 rounded-xl text-white font-black text-xs bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 primary-glow flex items-center justify-center gap-2 transform active:scale-[0.98] transition cursor-pointer shadow-lg';
         }
     }

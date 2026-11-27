@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { randomUUID } from 'crypto';
+import { randomInt } from 'crypto';
 import referralRepo from './referral.repo.js';
 import Partner from '../partners/partner.model.js';
 import offerRepo from '../offers/offer.repo.js';
@@ -80,7 +80,11 @@ class ReferralService {
             if (!partner) throw new Error('Selected partner does not exist');
             if (partner.status !== 'active') throw new Error('Selected partner is inactive or blocked');
 
-            const referralCode = randomUUID().toLowerCase();
+            const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+            let referralCode = '';
+            for (let i = 0; i < 7; i++) {
+                referralCode += chars[randomInt(0, chars.length)];
+            }
             const shareUrl = buildReferralUrl(referralCode);
 
             const referral = await referralRepo.createReferral({

@@ -6,6 +6,7 @@ import { checkPermission } from '../../middleware/auth.middleware.js';
 
 const router = express.Router();
 router.get('/v1/admin/clicks', checkPermission('GET_TRACKING_CLICKS'), clickController.listClicks);
+router.get('/v1/admin/clicks/:clickId', checkPermission('GET_TRACKING_CLICKS'), clickController.getClickById);
 
 
 // ── Public Click Generation (Protected by Token Bucket Rate Limiter) ──

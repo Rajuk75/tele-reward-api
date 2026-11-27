@@ -34,11 +34,21 @@ const TaskUI = {
         document.getElementById('loadingState')?.classList.remove('hidden');
         document.getElementById('errorState')?.classList.add('hidden');
         document.getElementById('offerContent')?.classList.add('hidden');
+        const spinTopBanner = document.getElementById('spinTopBanner');
+        if (spinTopBanner) {
+            spinTopBanner.hidden = true;
+            spinTopBanner.classList.add('hidden');
+        }
     },
 
     showErrorScreen(errorMessageText) {
         document.getElementById('loadingState')?.classList.add('hidden');
         document.getElementById('offerContent')?.classList.add('hidden');
+        const spinTopBanner = document.getElementById('spinTopBanner');
+        if (spinTopBanner) {
+            spinTopBanner.hidden = true;
+            spinTopBanner.classList.add('hidden');
+        }
         const errorElement = document.getElementById('errorMessage');
         if (errorElement) errorElement.textContent = errorMessageText || 'Task Currently Unavailable';
         document.getElementById('errorState')?.classList.remove('hidden');
@@ -86,11 +96,40 @@ const TaskUI = {
         document.getElementById('offerReward').textContent = currency.format(reward);
 
         const spin = offerData.spinSettings;
+        const spinTopBanner = document.getElementById('spinTopBanner');
+        const spinTopBannerImg = document.getElementById('spinTopBannerImg');
+        if (spinTopBanner) {
+            spinTopBanner.hidden = true;
+            spinTopBanner.classList.add('hidden');
+            spinTopBanner.style.cursor = 'pointer';
+        }
         const strip = document.getElementById('spinBonusStrip');
         strip.hidden = true;
-        if (spin?.enabled && Array.isArray(spin.slices) && spin.slices.length >= 2) {
-            const amounts = spin.slices.map(Number);
-            if (amounts.every(amount => Number.isFinite(amount) && amount >= 0) && Math.max(...amounts) > 0) {
+        strip.classList.add('hidden');
+
+        const amounts = Array.isArray(spin?.slices) ? spin.slices.map(Number) : [];
+        const hasValidSpin = Boolean(
+            spin?.enabled &&
+            amounts.length >= 2 &&
+            amounts.every(amount => Number.isFinite(amount) && amount >= 0) &&
+            Math.max(...amounts) > 0
+        );
+
+        if (typeof window.renderMoreWaysToEarn === 'function') {
+            window.renderMoreWaysToEarn({ spinEnabled: hasValidSpin });
+        }
+
+        if (hasValidSpin) {
+            if (spinTopBannerImg && !spinTopBannerImg.getAttribute('src')) {
+                spinTopBannerImg.src = '/logo/Purple%20spin-and-win%20rewards%20banner.png';
+            }
+            if (spinTopBanner) {
+                spinTopBanner.hidden = false;
+                spinTopBanner.classList.remove('hidden');
+            }
+            if (offerData.spinStatus?.alreadySpun) {
+                this.applySpinBonusUI(offerData, offerData.spinStatus.bonus);
+            } else {
                 const money = new Intl.NumberFormat('en-IN', {
                     style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2
                 });
@@ -98,7 +137,9 @@ const TaskUI = {
                 const max = Math.max(...amounts);
                 const range = min === max ? money.format(max) : money.format(min) + '\u2013' + money.format(max);
                 document.getElementById('spinBonusText').textContent = 'Spin for an extra ' + range;
+                strip.style.cursor = 'pointer';
                 strip.hidden = false;
+                strip.classList.remove('hidden');
             }
         }
 
@@ -116,7 +157,64 @@ const TaskUI = {
         const terms = document.getElementById('offerTerms');
         terms.textContent = this.offerText(offerData.termsAndConditions);
         document.getElementById('termsSection').hidden = !terms.textContent;
+
+        if (typeof window.renderRewardJourney === 'function') {
+            window.renderRewardJourney(offerData.journeySteps);
+        }
+
         this.showOfferContent();
+    },
+
+    applySpinBonusUI(offerData, bonusAmount) {
+        const bonus = Number(bonusAmount) || 0;
+        const baseReward = Number(offerData?.totalRewardINR ?? offerData?.rewardINR ?? 0);
+        const total = baseReward + bonus;
+        const currency = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+        const rewardEl = document.getElementById('offerReward');
+        if (rewardEl) rewardEl.textContent = currency.format(total);
+
+        const strip = document.getElementById('spinBonusStrip');
+        if (strip) {
+            strip.hidden = false;
+            strip.style.background = '#ecfdf5';
+            strip.style.borderColor = '#a7f3d0';
+            strip.style.color = '#065f46';
+            strip.style.cursor = 'default';
+            const chevron = strip.querySelector('.fa-chevron-right');
+            if (chevron) chevron.style.display = 'none';
+            const icon = strip.querySelector('.bonus-icon');
+            if (icon) {
+                icon.className = 'fa-solid fa-circle-check bonus-icon';
+                icon.style.color = '#059669';
+            }
+            const textEl = document.getElementById('spinBonusText');
+            if (textEl) {
+                textEl.textContent = bonus > 0
+                    ? `₹${bonus} Spin Bonus Unlocked`
+                    : 'Spin Completed (Locked)';
+            }
+        }
+
+        const spinTopBanner = document.getElementById('spinTopBanner');
+        if (spinTopBanner) {
+            spinTopBanner.style.cursor = 'default';
+        }
+    },
+
+    openPayoutPrompt() {
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+        const card = document.getElementById('payoutCard');
+        if (!isDesktop) {
+            const openBtn = document.getElementById('openPayout');
+            if (openBtn) openBtn.click();
+        } else if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setTimeout(() => {
+            const input = card?.querySelector('input:not([type="hidden"])');
+            if (input) input.focus();
+        }, 120);
     },
 
     setStartButtonLoadingState(isLoading) {

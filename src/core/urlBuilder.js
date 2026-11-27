@@ -146,4 +146,13 @@ export function buildReferralUrl(referralCode) {
     return `${config.BASE_URL}/task?ref=${code}`;
 }
 
+/**
+ * buildOfferTaskUrl
+ * Generates the short public task URL using the 6-char offerId (falling back to _id).
+ */
+export function buildOfferTaskUrl(offer) {
+    const code = offer?.offerId || offer?._id;
+    return code ? `${config.BASE_URL.replace(/\/+$/, '')}/task/${code}` : null;
+}
+
 

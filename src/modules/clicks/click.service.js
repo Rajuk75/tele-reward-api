@@ -6,6 +6,7 @@ import referralRepo from '../referrals/referral.repo.js';
 import { snapshotMilestones } from '../tracking/milestones.js';
 import clickRepo from './click.repo.js';
 import { buildTrackingUrl } from '../../core/urlBuilder.js';
+import { getSpinCookieName, verifySpinToken } from '../../core/spinToken.utility.js';
 import logger from '../../core/logger.js';
 
 /**
@@ -58,6 +59,13 @@ class ClickService {
         const query = reportQuery(params);
         const { rows, summary } = await clickRepo.listClicks(query);
         return { clicks: rows, summary, pagination: pagination(query.page, query.limit, summary.total) };
+    }
+
+    async getClickById(clickId) {
+        if (!clickId) throw new Error('Click ID is required');
+        const tracking = await clickRepo.findByClickId(clickId);
+        if (!tracking) throw new Error('Tracking click not found');
+        return tracking;
     }
 
 
@@ -134,8 +142,10 @@ class ClickService {
         logger.debug(`click.service.js << snapshotted ${milestones.length} milestones, maxUserReward: ₹${maxUserEarningPaise / 100}`);
         const clickId = uuidv4();
 
-        // 6. Spin Bonus Anti-Tamper & Whitelist Validation
-        const spinReward = resolveSpinBonus(data.spinBonus, offer);
+        // 6. Spin Bonus Anti-Tamper: Read & verify HttpOnly signed spin cookie (ignore client-tampered bonus)
+        const spinCookieToken = reqMeta.cookies?.[getSpinCookieName(offer._id)];
+        const verifiedSpin = verifySpinToken(spinCookieToken, offer._id);
+        const spinReward = resolveSpinBonus(verifiedSpin ? verifiedSpin.bonus : 0, offer);
 
         // 7. Persist Tracking Record
         const record = {

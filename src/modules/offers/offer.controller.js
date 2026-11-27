@@ -73,10 +73,14 @@ class OfferController {
             if (!offerId && !referralCode) {
                 return setBadRequest(res, {message:'No task or referral specified'});
             }
-            if (offerId && !mongoose.Types.ObjectId.isValid(offerId)) {
+            if (offerId && !/^[a-zA-Z0-9_-]{4,32}$/.test(offerId)) {
                 return setBadRequest(res, 'Invalid Offer ID format');
             }
-            const data = await offerService.getPublicOffer({ offerId, referralCode });
+            const data = await offerService.getPublicOffer({
+                offerId,
+                referralCode,
+                cookies: req.cookies || {}
+            });
             return setSuccess(res, data);
         } catch (error) {
             logger.error(`offer.controller.js << getPublicOffer << ${error.message}`);

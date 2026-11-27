@@ -7,7 +7,8 @@ import { snapshotMilestones } from '../tracking/milestones.js';
 import referralRepo from '../referrals/referral.repo.js';
 import resolveReferral from '../referrals/resolveReferral.js';
 import logger from '../../core/logger.js';
-import { buildPostbackUrl } from '../../core/urlBuilder.js';
+import { buildPostbackUrl, buildOfferTaskUrl } from '../../core/urlBuilder.js';
+import { getSpinCookieName, verifySpinToken } from '../../core/spinToken.utility.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class OfferService {
@@ -31,8 +32,15 @@ class OfferService {
             }
 
             const postbackSecretKey = uuidv4();
+            const journeySteps = Array.isArray(offer.journeySteps)
+                ? offer.journeySteps.map(s => String(s).trim()).filter(Boolean)
+                : typeof offer.journeySteps === 'string'
+                    ? offer.journeySteps.split(',').map(s => s.trim()).filter(Boolean)
+                    : [];
+
             const createdOffer = await offerRepo.createOffer({
                 ...offer,
+                journeySteps,
                 isActive: (offer.status ?? 'active') === 'active',
                 campaignId: campaign._id,
                 offerName: offer.offerName?.trim() || campaign.name,
@@ -101,6 +109,7 @@ class OfferService {
             const events = Array.isArray(offer.events) ? offer.events : [];
             return {
                 ...offer,
+                taskUrl: buildOfferTaskUrl(offer),
                 totalPayout: events.reduce((sum, event) => sum + (event.userPayout || 0), 0),
                 totalCap: events.reduce((sum, event) => sum + (event.campaignEventId?.cap || 0), 0)
             };
@@ -144,6 +153,13 @@ class OfferService {
             if (rawOffer.offerName !== undefined) updatePayload.offerName = rawOffer.offerName.trim();
             if (rawOffer.comment !== undefined) updatePayload.comment = rawOffer.comment;
             if (rawOffer.steps !== undefined) updatePayload.steps = rawOffer.steps;
+            if (rawOffer.journeySteps !== undefined) {
+                updatePayload.journeySteps = Array.isArray(rawOffer.journeySteps)
+                    ? rawOffer.journeySteps.map(s => String(s).trim()).filter(Boolean)
+                    : typeof rawOffer.journeySteps === 'string'
+                        ? rawOffer.journeySteps.split(',').map(s => s.trim()).filter(Boolean)
+                        : [];
+            }
             if (rawOffer.termsAndConditions !== undefined) updatePayload.termsAndConditions = rawOffer.termsAndConditions;
             if (rawOffer.referTermsAndConditions !== undefined) updatePayload.referTermsAndConditions = rawOffer.referTermsAndConditions;
             if (rawOffer.status !== undefined) {
@@ -211,9 +227,9 @@ class OfferService {
     }
 
     async getPublicOffer(arg1, arg2) {
-        const { offerId, referralCode } = (typeof arg1 === 'object' && arg1 !== null)
+        const { offerId, referralCode, cookies = {} } = (typeof arg1 === 'object' && arg1 !== null)
             ? arg1
-            : { offerId: arg1, referralCode: arg2 };
+            : { offerId: arg1, referralCode: arg2, cookies: {} };
 
         try {
             let targetOfferId = offerId;
@@ -241,19 +257,30 @@ class OfferService {
             }
 
             const rows = snapshotMilestones(offer, referrerPercent);
+            const spinToken = cookies?.[getSpinCookieName(offer._id)];
+            const verifiedSpin = verifySpinToken(spinToken, offer._id);
+
+            const journeySteps = Array.isArray(offer.journeySteps) && offer.journeySteps.length > 0
+                ? offer.journeySteps
+                : ['Click', ...(Array.isArray(offer.events) ? offer.events.map(e => e.campaignEventId?.name).filter(Boolean) : [])];
 
             return {
                 id: offer._id,
+                offerCode: offer.offerId,
                 offerName: offer.offerName || campaign?.name || 'Special Reward Task',
                 category: offer.category || campaign?.category || 'App Task',
                 comment: offer.comment,
                 steps: offer.steps || '1. Enter your payout UPI or Bank Account Number.\n2. Tap Download & Install the app from Play Store.\n3. Open app and complete registration.',
+                journeySteps,
                 termsAndConditions: offer.termsAndConditions || 'Complete the task honestly. Rewards are transferred to your provided UPI/Account upon event verification.',
                 rewardINR: rows[0].userSharePaise / 100,
                 totalRewardINR: rows.reduce((sum, r) => sum + r.userSharePaise, 0) / 100,
                 icon: campaign?.imageUrl || campaign?.icon || campaign?.logoUrl || null,
                 referralCode: activeReferral?.referralCode || null,
-                spinSettings: offer.spinSettings || { enabled: false, slices: [] }
+                spinSettings: offer.spinSettings || { enabled: false, slices: [] },
+                spinStatus: verifiedSpin
+                    ? { alreadySpun: true, bonus: verifiedSpin.bonus, sliceIndex: verifiedSpin.sliceIndex }
+                    : { alreadySpun: false, bonus: 0, sliceIndex: null }
             };
         } catch (error) {
             logger.error(`offer.service.js << getPublicOffer() << ${error.message}`);

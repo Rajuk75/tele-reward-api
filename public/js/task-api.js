@@ -78,7 +78,7 @@ const TaskAPI = {
             ? `/v1/public/offers/${offerId}${ref ? '?ref=' + encodeURIComponent(ref) : ''}`
             : `/v1/public/task?ref=${encodeURIComponent(ref)}`;
 
-        const response = await fetch(endpoint);
+        const response = await fetch(endpoint, { credentials: 'include' });
         const responseJson = await response.json();
 
         if (!response.ok || !responseJson.data) {
@@ -100,6 +100,7 @@ const TaskAPI = {
         const ref = new URLSearchParams(window.location.search).get('ref');
         const response = await fetch(`/v1/public/offers/${offerId}/click`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ...payoutPayload,
@@ -110,6 +111,32 @@ const TaskAPI = {
         const responseJson = await response.json();
         if (!response.ok) {
             throw new Error(responseJson.data || responseJson.message || 'Failed to start task');
+        }
+
+        return responseJson.data;
+    },
+
+    /**
+     * Trigger Server-Side Spin & Set HttpOnly Signed Cookie
+     * POST /v1/public/offers/:offerId/spin
+     */
+    async spinOfferWheel(offerId) {
+        if (!offerId) {
+            throw new Error('Missing task identifier. Please refresh the page.');
+        }
+
+        const ref = new URLSearchParams(window.location.search).get('ref');
+        const query = ref ? `?ref=${encodeURIComponent(ref)}` : '';
+        const response = await fetch(`/v1/public/offers/${offerId}/spin${query}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ offerId, referralCode: ref || undefined })
+        });
+
+        const responseJson = await response.json();
+        if (!response.ok || !responseJson.data) {
+            throw new Error(responseJson.data || responseJson.message || 'Unable to spin wheel');
         }
 
         return responseJson.data;

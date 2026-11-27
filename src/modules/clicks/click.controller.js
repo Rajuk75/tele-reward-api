@@ -8,6 +8,11 @@ class ClickController {
         catch (error) { return setBadRequest(res, error.message); }
     }
 
+    async getClickById(req, res) {
+        try { return setSuccess(res, await clickService.getClickById(req.params.clickId)); }
+        catch (error) { return setBadRequest(res, error.message); }
+    }
+
     async createClick(req, res) {
         try {
             const offerId = req.params?.offerId || req.body?.offerId;
@@ -48,7 +53,7 @@ class ClickController {
                 payoutAccount,
                 payoutType,
                 referralCode
-            }, { ip, userAgent });
+            }, { ip, userAgent, cookies: req.cookies || {} });
 
             return setSuccess(res, result);
         } catch (error) {

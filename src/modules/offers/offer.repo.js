@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import Offer, { populateOfferEvents } from './offer.model.js';
 import OfferEvent from './offerEvent.model.js';
+import { buildOfferTaskUrl } from '../../core/urlBuilder.js';
 import logger from '../../core/logger.js';
 
 class OfferRepository {
@@ -21,9 +23,13 @@ class OfferRepository {
         }
     }
 
-    async findOfferById(id, { populate = true, includePostback = false } = {}) {
+    async findOfferById(idOrCode, { populate = true, includePostback = false } = {}) {
         try {
-            const query = Offer.findOne({ _id: id, isDeleted: false });
+            if (!idOrCode) return null;
+            const filter = mongoose.Types.ObjectId.isValid(idOrCode)
+                ? { _id: idOrCode, isDeleted: false }
+                : { offerId: String(idOrCode).trim().toUpperCase(), isDeleted: false };
+            const query = Offer.findOne(filter);
             if (includePostback) query.select('+postbackUrl');
             if (populate) {
                 query.populate('campaignId').populate(populateOfferEvents);
@@ -48,6 +54,7 @@ class OfferRepository {
                 const events = Array.isArray(offer.events) ? offer.events : [];
                 return {
                     ...offer,
+                    taskUrl: buildOfferTaskUrl(offer),
                     totalPayout: events.reduce((sum, event) => sum + (event.userPayout || 0), 0),
                     totalCap: events.reduce((sum, event) => sum + (event.campaignEventId?.cap || 0), 0)
                 };

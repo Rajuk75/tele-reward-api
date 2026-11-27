@@ -30,6 +30,10 @@ const OfferSchema = new mongoose.Schema(
         steps: {
             type: String
         },
+        journeySteps: {
+            type: [String],
+            default: []
+        },
         termsAndConditions: {
             type: String
         },
